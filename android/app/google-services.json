@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "884344156439",
+    "project_id": "habitflow-sivajith",
+    "storage_bucket": "habitflow-sivajith.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:884344156439:android:578c1c938d9ebc93b2c752",
+        "android_client_info": {
+          "package_name": "com.sivajith.habitflow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_6lNVwK0-s6wxgb5-AKBHGyqXG26oHyk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
