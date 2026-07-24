@@ -1,4 +1,4 @@
-package com.example.habit_flow
+package com.sivajith.habitflow
 
 import io.flutter.embedding.android.FlutterActivity
 

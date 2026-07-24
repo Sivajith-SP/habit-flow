@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.habit_flow"
+    namespace = "com.sivajith.habitflow"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
