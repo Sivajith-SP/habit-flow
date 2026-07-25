@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:habitflow/app/router/app_router.dart';
 
 import 'app/theme/app_theme.dart';
 
@@ -13,11 +14,11 @@ class HabitFlowApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp(
+        return MaterialApp.router(
           title: 'HabitFlow',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
-          home: const Scaffold(body: Center(child: Text('HabitFlow'))),
+          routerConfig: AppRouter.router,
         );
       },
     );
