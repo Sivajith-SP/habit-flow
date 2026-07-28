@@ -131,7 +131,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: AppTextStyles.bodySmall,
                         ),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            context.go(AppRoutes.register);
+                          },
                           child: Text("Register", style: AppTextStyles.title),
                         ),
                       ],

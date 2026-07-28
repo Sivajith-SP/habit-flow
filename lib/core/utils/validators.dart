@@ -26,4 +26,11 @@ class Validators {
 
     return null;
   }
+
+  static String? requiredField(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter your name';
+    }
+    return null;
+  }
 }

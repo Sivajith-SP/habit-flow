@@ -8,10 +8,32 @@ class FirebaseAuthRepository implements AuthRepository {
   FirebaseAuthRepository(this._firebaseAuth);
 
   @override
+  bool get isLoggedIn => _firebaseAuth.currentUser != null;
+
+  // login()
+  @override
   Future<void> login({required String email, required String password}) async {
     await _firebaseAuth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
+  }
+
+  // register()
+  @override
+  Future<void> register({
+    required String email,
+    required String password,
+  }) async {
+    await _firebaseAuth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  // logout()
+  @override
+  Future<void> logout() async {
+    await _firebaseAuth.signOut();
   }
 }

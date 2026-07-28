@@ -13,7 +13,7 @@ class AppRouter {
   AppRouter._();
 
   static final GoRouter router = GoRouter(
-    initialLocation: AppRoutes.login,
+    initialLocation: AppRoutes.splash,
     routes: [
       GoRoute(
         path: AppRoutes.splash,
@@ -28,11 +28,17 @@ class AppRouter {
       ),
       GoRoute(
         path: AppRoutes.register,
-        builder: (context, state) => const RegisterScreen(),
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<AuthBloc>(),
+          child: const RegisterScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.dashboard,
-        builder: (context, state) => const DashboardScreen(),
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<AuthBloc>(),
+          child: const DashboardScreen(),
+        ),
       ),
     ],
   );
