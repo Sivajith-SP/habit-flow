@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:habitflow/app/config/service_locator.dart';
 import 'package:habitflow/controllers/auth/auth_bloc.dart';
+import 'package:habitflow/views/onboarding/onboarding_screen.dart';
 
 import '../../views/auth/login_screen.dart';
 import '../../views/auth/register_screen.dart';
@@ -18,6 +19,10 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.splash,
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.onboarding,
+        builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
         path: AppRoutes.login,

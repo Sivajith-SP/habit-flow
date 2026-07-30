@@ -7,7 +7,7 @@ class AppTextStyles {
   AppTextStyles._();
 
   static final TextStyle heading1 = GoogleFonts.spaceGrotesk(
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
   );
