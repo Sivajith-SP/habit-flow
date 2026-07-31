@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:habitflow/app/router/app_routes.dart';
-import 'package:habitflow/controllers/auth/auth_state.dart';
+import 'package:habitflow/views/dashboard/widgets/progress_card.dart';
 
+import '../../app/router/app_routes.dart';
 import '../../app/theme/app_spacing.dart';
+import '../../app/theme/app_text_styles.dart';
 import '../../controllers/auth/auth_bloc.dart';
 import '../../controllers/auth/auth_event.dart';
+import '../../controllers/auth/auth_state.dart';
+import 'widgets/dashboard_header.dart';
+import 'widgets/week_calendar.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -20,23 +24,30 @@ class DashboardScreen extends StatelessWidget {
         }
       },
       child: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: .center,
-            children: [
-              Text("DashBoard"),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Align(
+                //   alignment: Alignment.centerRight,
+                //   child: TextButton.icon(
+                //     onPressed: () {
+                //       context.read<AuthBloc>().add(const LogoutRequested());
+                //     },
+                //     icon: const Icon(Icons.logout_rounded),
+                //     label: const Text("Logout"),
+                //   ),
+                // ),
 
-              SizedBox(height: AppSpacing.md),
-              SizedBox(
-                width: 140,
-                child: ElevatedButton(
-                  onPressed: () {
-                    context.read<AuthBloc>().add(const LogoutRequested());
-                  },
-                  child: const Text("Logout"),
-                ),
-              ),
-            ],
+                const DashboardHeader(),
+
+                SizedBox(height: AppSpacing.xl),
+
+                const ProgressCard(),
+              ],
+            ),
           ),
         ),
       ),
