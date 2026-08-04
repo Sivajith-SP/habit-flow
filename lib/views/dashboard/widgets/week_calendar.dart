@@ -54,9 +54,13 @@ class WeekCalendar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           item.$1,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                           style: AppTextStyles.caption.copyWith(
                             color: selected
                                 ? Colors.white70
@@ -68,6 +72,9 @@ class WeekCalendar extends StatelessWidget {
 
                         Text(
                           item.$2,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                           style: AppTextStyles.title.copyWith(
                             color: selected
                                 ? Colors.white

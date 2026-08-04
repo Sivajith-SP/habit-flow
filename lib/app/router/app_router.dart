@@ -4,6 +4,8 @@ import 'package:habitflow/app/config/service_locator.dart';
 import 'package:habitflow/controllers/auth/auth_bloc.dart';
 import 'package:habitflow/views/onboarding/onboarding_screen.dart';
 
+import '../../controllers/habits/habits_bloc.dart';
+import '../../controllers/habits/habits_event.dart';
 import '../../views/auth/login_screen.dart';
 import '../../views/auth/register_screen.dart';
 import '../../views/dashboard/dashboard_screen.dart';
@@ -40,8 +42,13 @@ class AppRouter {
       ),
       GoRoute(
         path: AppRoutes.dashboard,
-        builder: (context, state) => BlocProvider(
-          create: (context) => getIt<AuthBloc>(),
+        builder: (context, state) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => getIt<AuthBloc>()),
+            BlocProvider(
+              create: (_) => getIt<HabitsBloc>()..add(const LoadHabits()),
+            ),
+          ],
           child: const DashboardScreen(),
         ),
       ),

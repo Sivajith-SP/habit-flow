@@ -185,12 +185,16 @@ class ProgressCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(
-              "Today's Progress",
-              style: AppTextStyles.title.copyWith(fontWeight: FontWeight.w700),
+            Expanded(
+              child: Text(
+                "Today's Progress",
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: AppTextStyles.title.copyWith(fontWeight: FontWeight.w700),
+              ),
             ),
 
-            const Spacer(),
+            SizedBox(width: AppSpacing.sm),
 
             Text(
               "${(progress * 100).toInt()}%",
