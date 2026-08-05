@@ -62,11 +62,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     context.read<AuthBloc>().add(
-          RegisterRequested(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          ),
-        );
+      RegisterRequested(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      ),
+    );
   }
 
   @override
@@ -204,8 +204,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       // ── Login link ───────────────────────────────────────
                       Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
                               'Already have an account?',

@@ -104,7 +104,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       const AuthHeader(
                         tagline: 'Welcome back',
                         title: 'Good to see you',
-                        subtitle: 'Continue building better habits one day at\n a time.',
+                        subtitle:
+                            'Continue building better habits one day at\n a time.',
                       ),
 
                       SizedBox(height: AppSpacing.xl),
@@ -182,8 +183,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // ── Create Account link ──────────────────────────────
                       Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
                               "Don't have an account?",
