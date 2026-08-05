@@ -9,4 +9,9 @@ abstract class CompletionRepository {
   Future<bool> isCompleted({required String habitId, required DateTime date});
 
   Future<List<HabitCompletionModel>> getCompletions(String habitId);
+
+  Future<List<bool>> getCurrentWeekProgress();
+
+  Future<int> getCurrentStreak();
+
 }

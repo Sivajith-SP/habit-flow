@@ -8,7 +8,19 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_styles.dart';
 
 class ProgressCard extends StatelessWidget {
-  const ProgressCard({super.key});
+  final int completedHabits;
+  final int totalHabits;
+  final List<bool> weekProgress;
+  final int currentStreak;
+
+
+  const ProgressCard({
+    super.key,
+    required this.completedHabits,
+    required this.totalHabits,
+    required this.weekProgress,
+    required this.currentStreak,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +67,12 @@ class ProgressCard extends StatelessWidget {
               Text("🔥", style: TextStyle(fontSize: 16.sp)),
               SizedBox(width: 6.w),
               Text(
-                "12 Days",
+                "$currentStreak Day${currentStreak == 1 ? "" : "s"}",
                 style: AppTextStyles.body.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                 ),
-              ),
+              )
             ],
           ),
         ),
@@ -76,10 +88,14 @@ class ProgressCard extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.track_changes_rounded, color: AppColors.primary, size: 16.sp),
+              Icon(
+                Icons.track_changes_rounded,
+                color: AppColors.primary,
+                size: 16.sp,
+              ),
               SizedBox(width: 6.w),
               Text(
-                "5/7",
+                "$completedHabits/$totalHabits",
                 style: AppTextStyles.bodySmall.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
@@ -93,26 +109,28 @@ class ProgressCard extends StatelessWidget {
   }
 
   Widget _buildWeekProgress() {
-    const days = [
-      ("Mon", true),
-      ("Tue", true),
-      ("Wed", true),
-      ("Thu", false), // today
-      ("Fri", false),
-      ("Sat", false),
-      ("Sun", false),
+    const labels = [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun",
     ];
 
+    final todayIndex = DateTime.now().weekday - 1;
+
     return Row(
-      children: days.map((day) {
+      children: List.generate(7, (index) {
         return Expanded(
           child: _buildDayIndicator(
-            day.$1,
-            completed: day.$2,
-            isToday: day.$1 == "Thu",
+            labels[index],
+            completed: weekProgress[index],
+            isToday: index == todayIndex,
           ),
         );
-      }).toList(),
+      }),
     );
   }
 
@@ -175,10 +193,9 @@ class ProgressCard extends StatelessWidget {
   }
 
   Widget _buildHabitProgress() {
-    const completed = 5;
-    const total = 7;
-
-    final progress = completed / total;
+    final progress = totalHabits == 0
+        ? 0.0
+        : completedHabits / totalHabits;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,7 +207,9 @@ class ProgressCard extends StatelessWidget {
                 "Today's Progress",
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
-                style: AppTextStyles.title.copyWith(fontWeight: FontWeight.w700),
+                style: AppTextStyles.title.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
 
@@ -209,7 +228,7 @@ class ProgressCard extends StatelessWidget {
         SizedBox(height: AppSpacing.xs),
 
         Text(
-          "$completed of $total habits completed",
+          "$completedHabits of $totalHabits habits completed",
           style: AppTextStyles.bodySmall,
         ),
 
@@ -221,7 +240,9 @@ class ProgressCard extends StatelessWidget {
             value: progress,
             minHeight: 12.h,
             backgroundColor: AppColors.primaryLight,
-            valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+            valueColor: const AlwaysStoppedAnimation(
+              AppColors.primary,
+            ),
           ),
         ),
       ],

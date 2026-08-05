@@ -10,7 +10,8 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
   final HabitRepository _repository;
   final CompletionRepository _completionRepository;
 
-  HabitsBloc(this._repository,this._completionRepository) : super(const HabitsInitial()) {
+  HabitsBloc(this._repository, this._completionRepository)
+    : super(const HabitsInitial()) {
     on<LoadHabits>(_onLoadHabits);
     on<AddHabit>(_onAddHabit);
     on<UpdateHabit>(_onUpdateHabit);
@@ -20,9 +21,9 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
   }
 
   Future<void> _onLoadHabits(
-      LoadHabits event,
-      Emitter<HabitsState> emit,
-      ) async {
+    LoadHabits event,
+    Emitter<HabitsState> emit,
+  ) async {
     emit(const HabitsLoading());
 
     try {
@@ -30,30 +31,43 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
 
       final habitsWithCompletion = <HabitWithCompletion>[];
 
+      int completedToday = 0;
+
       for (final habit in habits) {
         final completed = await _completionRepository.isCompleted(
           habitId: habit.id,
           date: DateTime.now(),
         );
 
+        if (completed) {
+          completedToday++;
+        }
+
         habitsWithCompletion.add(
-          HabitWithCompletion(
-            habit: habit,
-            isCompletedToday: completed,
-          ),
+          HabitWithCompletion(habit: habit, isCompletedToday: completed),
         );
       }
 
-      emit(HabitsLoaded(habitsWithCompletion));
+      // NEW
+      final weekProgress = await _completionRepository.getCurrentWeekProgress();
+
+      final currentStreak = await _completionRepository.getCurrentStreak();
+
+      emit(
+        HabitsLoaded(
+          habits: habitsWithCompletion,
+          completedToday: completedToday,
+          totalHabits: habits.length,
+          weekProgress: weekProgress,
+          currentStreak: currentStreak,
+        ),
+      );
     } catch (e) {
       emit(HabitsError(e.toString()));
     }
   }
 
-  Future<void> _onAddHabit(
-      AddHabit event,
-      Emitter<HabitsState> emit,
-      ) async {
+  Future<void> _onAddHabit(AddHabit event, Emitter<HabitsState> emit) async {
     try {
       await _repository.addHabit(event.habit);
 
@@ -64,9 +78,9 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
   }
 
   Future<void> _onUpdateHabit(
-      UpdateHabit event,
-      Emitter<HabitsState> emit,
-      ) async {
+    UpdateHabit event,
+    Emitter<HabitsState> emit,
+  ) async {
     try {
       await _repository.updateHabit(event.habit);
 
@@ -77,9 +91,9 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
   }
 
   Future<void> _onDeleteHabit(
-      DeleteHabit event,
-      Emitter<HabitsState> emit,
-      ) async {
+    DeleteHabit event,
+    Emitter<HabitsState> emit,
+  ) async {
     try {
       await _repository.deleteHabit(event.habitId);
 
@@ -90,9 +104,9 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
   }
 
   Future<void> _onArchiveHabit(
-      ArchiveHabit event,
-      Emitter<HabitsState> emit,
-      ) async {
+    ArchiveHabit event,
+    Emitter<HabitsState> emit,
+  ) async {
     try {
       await _repository.archiveHabit(event.habitId);
 
@@ -103,9 +117,9 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
   }
 
   Future<void> _onToggleHabitCompletion(
-      ToggleHabitCompletion event,
-      Emitter<HabitsState> emit,
-      ) async {
+    ToggleHabitCompletion event,
+    Emitter<HabitsState> emit,
+  ) async {
     try {
       await _completionRepository.toggleCompletion(
         habitId: event.habit.id,
@@ -117,5 +131,4 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
       emit(HabitsError(e.toString()));
     }
   }
-
 }

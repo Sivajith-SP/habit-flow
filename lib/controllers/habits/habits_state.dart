@@ -1,8 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:habitflow/models/habit/habit_with_completion.dart';
 
-import '../../models/habit/habit_model.dart';
-
 abstract class HabitsState extends Equatable {
   const HabitsState();
 
@@ -21,10 +19,29 @@ class HabitsLoading extends HabitsState {
 class HabitsLoaded extends HabitsState {
   final List<HabitWithCompletion> habits;
 
-  const HabitsLoaded(this.habits);
+  final int completedToday;
+  final int totalHabits;
+
+  final List<bool> weekProgress;
+
+  final int currentStreak;
+
+  const HabitsLoaded({
+    required this.habits,
+    required this.completedToday,
+    required this.totalHabits,
+    required this.weekProgress,
+    required this.currentStreak,
+  });
 
   @override
-  List<Object?> get props => [habits];
+  List<Object> get props => [
+    habits,
+    completedToday,
+    totalHabits,
+    weekProgress,
+    currentStreak,
+  ];
 }
 
 class HabitsError extends HabitsState {

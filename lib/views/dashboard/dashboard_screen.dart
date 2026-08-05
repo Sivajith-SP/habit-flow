@@ -79,7 +79,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   SizedBox(height: AppSpacing.xl),
 
-                  const ProgressCard(),
+                  BlocBuilder<HabitsBloc, HabitsState>(
+                    builder: (context, state) {
+                      if (state is HabitsLoaded) {
+                        return ProgressCard(
+                          completedHabits: state.completedToday,
+                          totalHabits: state.totalHabits,
+                          weekProgress: state.weekProgress,
+                          currentStreak: state.currentStreak,
+                        );
+                      }
+
+                      return const ProgressCard(
+                        completedHabits: 0,
+                        totalHabits: 0,
+                        weekProgress: [
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                        ],
+                        currentStreak: 0,
+                      );
+                    },
+                  ),
 
                   SizedBox(height: AppSpacing.xl),
 
