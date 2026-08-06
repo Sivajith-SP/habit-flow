@@ -19,7 +19,7 @@ class AppTextStyles {
   );
 
   static final TextStyle title = GoogleFonts.spaceGrotesk(
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
   );
@@ -31,7 +31,7 @@ class AppTextStyles {
   );
 
   static final TextStyle bodySmall = GoogleFonts.spaceGrotesk(
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: FontWeight.normal,
     color: AppColors.textSecondary,
   );
@@ -43,7 +43,7 @@ class AppTextStyles {
   );
 
   static final TextStyle caption = GoogleFonts.spaceGrotesk(
-    fontSize: 12,
+    fontSize: 13,
     color: AppColors.textSecondary,
   );
 }

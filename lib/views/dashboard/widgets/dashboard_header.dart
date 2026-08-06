@@ -15,14 +15,9 @@ class DashboardHeader extends StatelessWidget {
 
   String _greeting() {
     final hour = DateTime.now().hour;
-
-    if (hour < 12) {
-      return "Good Morning";
-    } else if (hour < 17) {
-      return "Good Afternoon";
-    } else {
-      return "Good Evening";
-    }
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
   }
 
   String _date() {
@@ -52,64 +47,90 @@ class DashboardHeader extends StatelessWidget {
     ];
 
     final now = DateTime.now();
-
     return "${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}";
   }
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // Left: date chip + greeting + name
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _greeting(),
-                style: AppTextStyles.heading1.copyWith(
-                  fontSize: 32.sp,
-                  fontWeight: FontWeight.w700,
-                  height: 1.05,
-                  color: AppColors.textPrimary,
+              // Subtle date pill badge
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: 4.h,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: Text(
+                  _date().toUpperCase(),
+                  style: AppTextStyles.caption.copyWith(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.8,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
 
-              SizedBox(height: 2.h),
+              SizedBox(height: 8.h),
 
-              Text(
-                userName,
-                style: AppTextStyles.body.copyWith(
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
-                  height: 1.2,
+              // Greeting (light weight) + name (bold) — single line
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: "${_greeting()}, ",
+                      style: AppTextStyles.heading1.copyWith(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.textSecondary,
+                        height: 1.15,
+                      ),
+                    ),
+                    TextSpan(
+                      text: "$userName.",
+                      style: AppTextStyles.heading1.copyWith(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                        height: 1.15,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-
-              SizedBox(height: 10.h),
-
-              Text(
-                _date(),
-                style: AppTextStyles.caption.copyWith(
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.3,
-                  color: AppColors.textSecondary.withValues(alpha: 0.75),
-                ),
-              ),
-
             ],
           ),
         ),
 
-        CircleAvatar(
-          radius: 26.r,
-          backgroundColor: AppColors.primaryLight,
-          child: Icon(
-            Icons.person_rounded,
-            color: AppColors.primary,
-            size: 28.sp,
+        SizedBox(width: AppSpacing.md),
+
+        // Minimal letter avatar
+        Container(
+          width: 42.r,
+          height: 42.r,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.primaryLight.withValues(alpha: 0.6),
+          ),
+          child: Center(
+            child: Text(
+              userName.isNotEmpty ? userName[0].toUpperCase() : "A",
+              style: AppTextStyles.title.copyWith(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
           ),
         ),
       ],

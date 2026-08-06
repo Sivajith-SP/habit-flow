@@ -19,6 +19,19 @@ class HabitFlowApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           routerConfig: AppRouter.router,
+          // Clamp text scale: respects accessibility up to 1.3x
+          // without breaking fixed-height UI containers
+          builder: (context, child) {
+            final mediaQuery = MediaQuery.of(context);
+            final clampedScale = mediaQuery.textScaler.clamp(
+              minScaleFactor: 1.0,
+              maxScaleFactor: 1.3,
+            );
+            return MediaQuery(
+              data: mediaQuery.copyWith(textScaler: clampedScale),
+              child: child!,
+            );
+          },
         );
       },
     );

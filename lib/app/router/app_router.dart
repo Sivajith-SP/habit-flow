@@ -9,7 +9,6 @@ import '../../controllers/habits/habits_bloc.dart';
 import '../../controllers/habits/habits_event.dart';
 import '../../views/auth/login_screen.dart';
 import '../../views/auth/register_screen.dart';
-import '../../views/dashboard/dashboard_screen.dart';
 import '../../views/splash/splash_screen.dart';
 import 'app_routes.dart';
 

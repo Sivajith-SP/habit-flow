@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../controllers/habits/habits_bloc.dart';
@@ -26,9 +26,28 @@ class _AppShellState extends State<AppShell> {
     SettingsScreen(),
   ];
 
+  void _openAddHabitSheet() {
+    final habitsBloc = context.read<HabitsBloc>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      transitionAnimationController: AnimationController(
+        vsync: Navigator.of(context),
+        duration: const Duration(milliseconds: 350),
+      ),
+      builder: (_) => BlocProvider.value(
+        value: habitsBloc,
+        child: const AddHabitBottomSheet(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
@@ -41,25 +60,8 @@ class _AppShellState extends State<AppShell> {
             _currentIndex = index;
           });
         },
+        onAddTap: _openAddHabitSheet,
       ),
-
-      floatingActionButton: _currentIndex == 0
-          ? FloatingActionButton(
-        onPressed: () {
-          final habitsBloc = context.read<HabitsBloc>();
-
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (_) => BlocProvider.value(
-              value: habitsBloc,
-              child: const AddHabitBottomSheet(),
-            ),
-          );
-        },
-        child: const Icon(Icons.add),
-      )
-          : null,
     );
   }
 }
