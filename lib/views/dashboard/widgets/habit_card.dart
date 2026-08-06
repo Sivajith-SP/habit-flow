@@ -27,38 +27,49 @@ class HabitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool done = habit.isCompletedToday;
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
         InkWell(
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          onTap: onTap,
-          onLongPress: onLongPress,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          // Block all card-level interactions while in edit mode
+          onTap: isSelected ? null : onTap,
+          onLongPress: isSelected ? null : onLongPress,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeInOut,
             padding: EdgeInsets.symmetric(
               horizontal: AppSpacing.md,
-              vertical: 14.h,
+              vertical: 12.h,
             ),
             decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(AppRadius.xl),
+              color: done
+                  ? AppColors.primary.withValues(alpha: 0.06)
+                  : AppColors.card,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.transparent,
-                width: 2,
+                color: isSelected
+                    ? AppColors.primary
+                    : done
+                        ? AppColors.primary.withValues(alpha: 0.2)
+                        : AppColors.border.withValues(alpha: 0.5),
+                width: isSelected ? 2 : 1,
               ),
-              boxShadow: AppShadows.soft,
+              boxShadow: done ? null : AppShadows.soft,
             ),
             child: Row(
               children: [
-                /// ICON
+                // Habit Icon Container
                 Container(
-                  width: 48.w,
-                  height: 48.w,
+                  width: 42.w,
+                  height: 42.w,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(14.r),
+                    color: done
+                        ? AppColors.primary.withValues(alpha: 0.12)
+                        : AppColors.primaryLight.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                   alignment: Alignment.center,
                   child: Icon(
@@ -66,13 +77,16 @@ class HabitCard extends StatelessWidget {
                       habit.habit.iconCodePoint,
                       fontFamily: 'MaterialIcons',
                     ),
-                    color: AppColors.primary,
-                    size: 24.sp,
+                    color: done
+                        ? AppColors.primary.withValues(alpha: 0.7)
+                        : AppColors.primary,
+                    size: 22.sp,
                   ),
                 ),
 
-                SizedBox(width: 14.w),
+                SizedBox(width: 12.w),
 
+                // Title + Description Column
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,20 +98,25 @@ class HabitCard extends StatelessWidget {
                         style: AppTextStyles.body.copyWith(
                           fontWeight: FontWeight.w700,
                           fontSize: 15.sp,
+                          color: done
+                              ? AppColors.textSecondary
+                              : AppColors.textPrimary,
+                          decoration: done
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                          decorationColor: AppColors.textSecondary,
                         ),
                       ),
-
-                      SizedBox(height: 4.h),
-
+                      SizedBox(height: 3.h),
                       Text(
                         habit.habit.description.isEmpty
-                            ? "No description"
+                            ? _frequencyLabel()
                             : habit.habit.description,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.caption.copyWith(
-                          color: AppColors.textSecondary,
-                          fontSize: 12.sp,
+                          color: AppColors.textMuted,
+                          fontSize: 13.sp,
                         ),
                       ),
                     ],
@@ -106,77 +125,67 @@ class HabitCard extends StatelessWidget {
 
                 SizedBox(width: 10.w),
 
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 10.w,
-                    vertical: 5.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                  ),
-                  child: Text(
-                    _frequencyLabel(),
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+                // Frequency Chip or Quick Edit Button depending on selection
+                if (isSelected)
+                  GestureDetector(
+                    onTap: onEdit,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 6.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.3),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.edit_rounded,
+                            color: Colors.white,
+                            size: 13.sp,
+                          ),
+                          SizedBox(width: 4.w),
+                          Text(
+                            "Edit",
+                            style: AppTextStyles.caption.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13.sp,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 9.w,
+                      vertical: 4.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                    ),
+                    child: Text(
+                      _frequencyLabel(),
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12.sp,
+                      ),
                     ),
                   ),
-                ),
-
-                SizedBox(width: 12.w),
-
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  width: 30.w,
-                  height: 30.w,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: habit.isCompletedToday
-                        ? AppColors.primary
-                        : Colors.transparent,
-                    border: Border.all(color: AppColors.primary, width: 2),
-                  ),
-                  child: AnimatedScale(
-                    duration: const Duration(milliseconds: 200),
-                    scale: habit.isCompletedToday ? 1 : 0,
-                    child: Icon(
-                      Icons.check_rounded,
-                      color: Colors.white,
-                      size: 16.sp,
-                    ),
-                  ),
-                ),
               ],
-            ),
-          ),
-        ),
-
-        /// Floating Edit Button
-        AnimatedPositioned(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut,
-          top: isSelected ? -10.h : 6.h,
-          right: isSelected ? -8.w : 6.w,
-          child: AnimatedScale(
-            duration: const Duration(milliseconds: 250),
-            scale: isSelected ? 1 : 0,
-            child: GestureDetector(
-              onTap: onEdit,
-              child: Container(
-                width: 30.w,
-                height: 30.w,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  boxShadow: AppShadows.soft,
-                ),
-                child: Icon(
-                  Icons.edit_rounded,
-                  color: Colors.white,
-                  size: 16.sp,
-                ),
-              ),
             ),
           ),
         ),

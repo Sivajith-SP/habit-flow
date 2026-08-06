@@ -42,7 +42,7 @@ class _SkeletonHabitCard extends StatelessWidget {
             height: 28.w,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.primaryLight.withOpacity(.5),
+              color: AppColors.primaryLight.withValues(alpha: .5),
             ),
           ),
 
@@ -84,7 +84,7 @@ class _SkeletonBar extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.primaryLight.withOpacity(.45),
+        color: AppColors.primaryLight.withValues(alpha: .45),
         borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
     );

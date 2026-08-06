@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:habitflow/views/dashboard/widgets/empty_habits_state.dart';
 import 'package:habitflow/views/dashboard/widgets/habits_loading_state.dart';
@@ -35,34 +36,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
       },
       child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () {
-            if (_selectedHabitId != null) {
-              setState(() {
-                _selectedHabitId = null;
-              });
-            }
-          },
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          if (_selectedHabitId != null) {
+            setState(() {
+              _selectedHabitId = null;
+            });
+          }
+        },
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFF3F6F2),
+                Color(0xFFFAFCFA),
+                Colors.white,
+              ],
+              stops: [0.0, 0.35, 1.0],
+            ),
+          ),
           child: SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(AppSpacing.lg),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Align(
-                  //   alignment: Alignment.centerRight,
-                  //   child: TextButton.icon(
-                  //     onPressed: () {
-                  //       context.read<AuthBloc>().add(const LogoutRequested());
-                  //     },
-                  //     icon: const Icon(Icons.logout_rounded),
-                  //     label: const Text("Logout"),
-                  //   ),
-                  // ),
+                  SizedBox(height: 12.h),
+
+                  // Fixed Top Header
                   const DashboardHeader(),
 
-                  SizedBox(height: AppSpacing.xl),
+                  SizedBox(height: 14.h),
 
+                  // Fixed Progress Card
                   BlocBuilder<HabitsBloc, HabitsState>(
                     builder: (context, state) {
                       if (state is HabitsLoaded) {
@@ -91,65 +99,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     },
                   ),
 
-                  SizedBox(height: AppSpacing.xl),
+                  SizedBox(height: 16.h),
 
-                  BlocBuilder<HabitsBloc, HabitsState>(
-                    builder: (context, state) {
-                      if (state is HabitsLoading) {
-                        return const HabitsLoadingState();
-                      }
-
-                      if (state is HabitsLoaded) {
-                        if (state.habits.isEmpty) {
-                          return const EmptyHabitsState();
+                  // Scrollable Habit Cards Section
+                  Expanded(
+                    child: BlocBuilder<HabitsBloc, HabitsState>(
+                      builder: (context, state) {
+                        if (state is HabitsLoading) {
+                          return const HabitsLoadingState();
                         }
 
-                        return TodaysHabitsSection(
-                          habits: state.habits,
+                        if (state is HabitsLoaded) {
+                          if (state.habits.isEmpty) {
+                            return const EmptyHabitsState();
+                          }
 
-                          selectedHabitId: _selectedHabitId,
+                          return TodaysHabitsSection(
+                            habits: state.habits,
+                            selectedHabitId: _selectedHabitId,
+                            onHabitTap: (habit) {
+                              context.read<HabitsBloc>().add(
+                                ToggleHabitCompletion(habit),
+                              );
+                            },
+                            onHabitLongPress: (habit) {
+                              setState(() {
+                                _selectedHabitId = habit.id;
+                              });
+                            },
+                            onEditHabit: (habit) async {
+                              await showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => BlocProvider.value(
+                                  value: context.read<HabitsBloc>(),
+                                  child: AddHabitBottomSheet(habit: habit),
+                                ),
+                              );
 
-                          onHabitTap: (habit) {
-                            context.read<HabitsBloc>().add(
-                              ToggleHabitCompletion(habit),
-                            );
-                          },
+                              setState(() {
+                                _selectedHabitId = null;
+                              });
+                            },
+                          );
+                        }
 
-                          onHabitLongPress: (habit) {
-                            setState(() {
-                              _selectedHabitId = habit.id;
-                            });
-                          },
+                        if (state is HabitsError) {
+                          return Center(child: Text(state.message));
+                        }
 
-                          onEditHabit: (habit) async {
-                            await showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              builder: (_) => BlocProvider.value(
-                                value: context.read<HabitsBloc>(),
-                                child: AddHabitBottomSheet(habit: habit),
-                              ),
-                            );
-
-                            setState(() {
-                              _selectedHabitId = null;
-                            });
-                          },
-                        );
-                      }
-
-                      if (state is HabitsError) {
-                        return Center(child: Text(state.message));
-                      }
-
-                      return const SizedBox.shrink();
-                    },
+                        return const SizedBox.shrink();
+                      },
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ),
+      ),
     );
   }
 }

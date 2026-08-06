@@ -10,50 +10,60 @@ class EmptyHabitsState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.xl,
-      ),
-      // decoration: BoxDecoration(
-      //   color: AppColors.card,
-      //   borderRadius: BorderRadius.circular(AppRadius.xl),
-      //   boxShadow: AppShadows.soft,
-      // ),
-      child: Column(
-        children: [
-          Container(
-            width: 72.w,
-            height: 72.w,
-            decoration: const BoxDecoration(
-              color: AppColors.primaryLight,
-              shape: BoxShape.circle,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg.w,
+            vertical: AppSpacing.xl.h,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight,
             ),
-            child: Icon(
-              Icons.task_alt_rounded,
-              color: AppColors.primary,
-              size: 36.sp,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 320.w),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 72.r,
+                      height: 72.r,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primaryLight,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.task_alt_rounded,
+                        color: AppColors.primary,
+                        size: 36.sp,
+                      ),
+                    ),
+
+                    SizedBox(height: AppSpacing.lg.h),
+
+                    Text(
+                      "No habits for today",
+                      style: AppTextStyles.heading2.copyWith(fontWeight: FontWeight.w700),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    SizedBox(height: AppSpacing.sm.h),
+
+                    Text(
+                      "Tap the + button to create your first habit and start building consistency.",
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-
-          SizedBox(height: AppSpacing.lg),
-
-          Text(
-            "No habits for today",
-            style: AppTextStyles.heading2.copyWith(fontWeight: FontWeight.w700),
-            textAlign: TextAlign.center,
-          ),
-
-          SizedBox(height: AppSpacing.sm),
-
-          Text(
-            "Tap the + button to create your first habit and start building consistency.",
-            textAlign: TextAlign.center,
-            style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
