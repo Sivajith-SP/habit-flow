@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:habitflow/app/config/service_locator.dart';
 import 'package:habitflow/controllers/auth/auth_bloc.dart';
 import 'package:habitflow/views/onboarding/onboarding_screen.dart';
+import 'package:habitflow/views/shell/app_shell.dart';
 
 import '../../controllers/habits/habits_bloc.dart';
 import '../../controllers/habits/habits_event.dart';
@@ -49,7 +50,7 @@ class AppRouter {
               create: (_) => getIt<HabitsBloc>()..add(const LoadHabits()),
             ),
           ],
-          child: const DashboardScreen(),
+          child: const AppShell(),
         ),
       ),
     ],

@@ -34,23 +34,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           context.go(AppRoutes.login);
         }
       },
-      child: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            final habitsBloc = context.read<HabitsBloc>();
-
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (_) => BlocProvider.value(
-                value: habitsBloc,
-                child: const AddHabitBottomSheet(),
-              ),
-            );
-          },
-          child: const Icon(Icons.add),
-        ),
-        body: GestureDetector(
+      child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () {
             if (_selectedHabitId != null) {
@@ -166,7 +150,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 }
