@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../app/theme/app_colors.dart';
@@ -43,10 +43,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     final items = [
-      (Icons.home_outlined, Icons.home_rounded),
-      (Icons.bar_chart_rounded, Icons.bar_chart_rounded),
-      (Icons.calendar_today_outlined, Icons.calendar_today_rounded),
-      (Icons.person_outline_rounded, Icons.person_rounded),
+      (Icons.grid_view_outlined, Icons.grid_view_rounded),
+      (Icons.task_alt_outlined, Icons.task_alt_rounded),
+      (Icons.insights_outlined, Icons.insights_rounded),
+      (Icons.settings_outlined, Icons.settings_rounded),
     ];
 
     final bool showAddButton = widget.currentIndex == 0;
@@ -63,7 +63,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
           // Nav bar pill container
           Expanded(
             child: Container(
-              height: 56.h,
+              height: 64.h,
               decoration: BoxDecoration(
                 color: AppColors.primaryDark,
                 borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -93,7 +93,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                             color: isSelected
                                 ? AppColors.white
                                 : AppColors.white.withValues(alpha: 0.35),
-                            size: 20.sp,
+                            size: 22.sp,
                           ),
                         ),
                       ),
@@ -109,8 +109,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
             duration: AppDurations.normal,
             curve: Curves.easeInOutCubic,
             margin: EdgeInsets.only(left: showAddButton ? AppSpacing.sm : 0),
-            width: showAddButton ? 56.h : 0,
-            height: 56.h,
+            width: showAddButton ? 64.h : 0,
+            height: 64.h,
             child: AnimatedOpacity(
               duration: AppDurations.fast,
               curve: Curves.easeInOut,
@@ -124,8 +124,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 child: GestureDetector(
                   onTap: showAddButton ? _handleFabTap : null,
                   child: Container(
-                    width: 56.h,
-                    height: 56.h,
+                    width: 64.h,
+                    height: 64.h,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppColors.primaryDark,
@@ -144,7 +144,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                         child: Icon(
                           Icons.add_rounded,
                           color: AppColors.white,
-                          size: 24.sp,
+                          size: 26.sp,
                         ),
                       ),
                     ),

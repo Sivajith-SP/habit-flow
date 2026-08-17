@@ -10,14 +10,24 @@ class AppColors {
   static const Color accentCream = Color(0xFFEBE5C9);
 
   // Mesh Background & Top-Left Glow Tokens
-  static const Color meshTopLeftGlow = Color(0xFFF9F5CB); // Warm vibrant sunlit yellow/cream glow
-  static const Color meshMintAccent = Color(0xFFAFD6A3); // Vibrant soft emerald/mint accent
-  static const Color meshWarmGlow = Color(0xFFEFE8B8); // Subtle warm accent blob
-  static const Color meshBaseStart = Color(0xFFE5EFE2); // Base gradient top-left
-  static const Color meshBaseEnd = Color(0xFFEBE5D3); // Base gradient bottom-right
+  static const Color meshTopLeftGlow = Color(
+    0xFFF9F5CB,
+  ); // Warm vibrant sunlit yellow/cream glow
+  static const Color meshMintAccent = Color(
+    0xFFAFD6A3,
+  ); // Vibrant soft emerald/mint accent
+  static const Color meshWarmGlow = Color(
+    0xFFEFE8B8,
+  ); // Subtle warm accent blob
+  static const Color meshBaseStart = Color(
+    0xFFE5EFE2,
+  ); // Base gradient top-left
+  static const Color meshBaseEnd = Color(
+    0xFFEBE5D3,
+  ); // Base gradient bottom-right
 
   // Background Canvas
-  static const Color background = Color(0xFFE8EFE5);
+  static const Color background = Color(0xFFF5F5F7);
   static const Color card = Colors.white;
 
   // Text Colors (High Contrast Natural Tones)

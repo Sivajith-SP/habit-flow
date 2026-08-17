@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +14,7 @@ import '../../controllers/auth/auth_state.dart';
 import '../../controllers/habits/habits_bloc.dart';
 import '../../controllers/habits/habits_event.dart';
 import '../../controllers/habits/habits_state.dart';
+import '../../models/habit/habit_frequency.dart';
 import 'widgets/add_habit_bottom_sheet.dart';
 import 'widgets/dashboard_header.dart';
 
@@ -44,31 +45,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
             });
           }
         },
-        child: Container(
+        child: DecoratedBox(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFFF3F6F2),
-                Color(0xFFFAFCFA),
-                Colors.white,
-              ],
-              stops: [0.0, 0.35, 1.0],
-            ),
+            color: Colors.white,
           ),
           child: SafeArea(
+            bottom: false,
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 12.h),
+                  SizedBox(height: 16.h),
 
                   // Fixed Top Header
                   const DashboardHeader(),
 
-                  SizedBox(height: 14.h),
+                  SizedBox(height: 18.h),
 
                   // Fixed Progress Card
                   BlocBuilder<HabitsBloc, HabitsState>(
@@ -99,7 +92,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     },
                   ),
 
-                  SizedBox(height: 16.h),
+                  SizedBox(height: 22.h),
 
                   // Scrollable Habit Cards Section
                   Expanded(
@@ -110,12 +103,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         }
 
                         if (state is HabitsLoaded) {
-                          if (state.habits.isEmpty) {
+                          final todayWeekday =
+                              (DateTime.now().weekday - 1); // 0 = Mon, 6 = Sun
+                          final activeHabits = state.habits.where((
+                            habitWithComp,
+                          ) {
+                            final h = habitWithComp.habit;
+                            if (h.isArchived) return false;
+
+                            switch (h.frequency) {
+                              case HabitFrequency.daily:
+                                return true;
+                              case HabitFrequency.weekly:
+                                // If weekly and targetDays specified, check if today is selected
+                                if (h.targetDays.isNotEmpty) {
+                                  return h.targetDays.contains(todayWeekday);
+                                }
+                                // Default weekly: scheduled on the weekday it was created
+                                final createdWeekday =
+                                    (h.createdAt.weekday - 1);
+                                return todayWeekday == createdWeekday;
+                              case HabitFrequency.custom:
+                                return h.targetDays.contains(todayWeekday);
+                            }
+                          }).toList();
+
+                          if (activeHabits.isEmpty) {
                             return const EmptyHabitsState();
                           }
 
                           return TodaysHabitsSection(
-                            habits: state.habits,
+                            habits: activeHabits,
                             selectedHabitId: _selectedHabitId,
                             onHabitTap: (habit) {
                               context.read<HabitsBloc>().add(

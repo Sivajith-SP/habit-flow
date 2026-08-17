@@ -11,5 +11,7 @@ abstract class HabitRepository {
 
   Future<void> archiveHabit(String habitId);
 
+  Future<void> restoreHabit(String habitId);
+
   Future<HabitModel?> getHabitById(String habitId);
 }

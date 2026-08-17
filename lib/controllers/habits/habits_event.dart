@@ -49,6 +49,15 @@ class ArchiveHabit extends HabitsEvent {
   List<Object?> get props => [habitId];
 }
 
+class RestoreHabit extends HabitsEvent {
+  final String habitId;
+
+  const RestoreHabit(this.habitId);
+
+  @override
+  List<Object?> get props => [habitId];
+}
+
 class ToggleHabitCompletion extends HabitsEvent {
   final HabitModel habit;
 

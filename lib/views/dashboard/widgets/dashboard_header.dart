@@ -6,10 +6,7 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_styles.dart';
 
 class DashboardHeader extends StatelessWidget {
-  const DashboardHeader({
-    super.key,
-    this.userName = "Alex",
-  });
+  const DashboardHeader({super.key, this.userName = "Alex"});
 
   final String userName;
 
@@ -21,33 +18,22 @@ class DashboardHeader extends StatelessWidget {
   }
 
   String _date() {
-    const weekdays = [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ];
-
     const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
-
     final now = DateTime.now();
-    return "${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}";
+    return '${months[now.month - 1]} ${now.day}';
   }
 
   @override
@@ -55,34 +41,21 @@ class DashboardHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Left: date chip + greeting + name
+        // Left: greeting + name
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Subtle date pill badge
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: 4.h,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight.withValues(alpha: 0.45),
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Text(
-                  _date().toUpperCase(),
-                  style: AppTextStyles.caption.copyWith(
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.8,
-                    color: AppColors.primary,
-                  ),
+              Text(
+                _date().toUpperCase(),
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.primary,
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
                 ),
               ),
-
-              SizedBox(height: 8.h),
-
+              SizedBox(height: 5.h),
               // Greeting (light weight) + name (bold) — single line
               RichText(
                 text: TextSpan(
@@ -90,7 +63,7 @@ class DashboardHeader extends StatelessWidget {
                     TextSpan(
                       text: "${_greeting()}, ",
                       style: AppTextStyles.heading1.copyWith(
-                        fontSize: 22.sp,
+                        fontSize: 25.sp,
                         fontWeight: FontWeight.w400,
                         color: AppColors.textSecondary,
                         height: 1.15,
@@ -99,7 +72,7 @@ class DashboardHeader extends StatelessWidget {
                     TextSpan(
                       text: "$userName.",
                       style: AppTextStyles.heading1.copyWith(
-                        fontSize: 22.sp,
+                        fontSize: 25.sp,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                         height: 1.15,
@@ -114,13 +87,13 @@ class DashboardHeader extends StatelessWidget {
 
         SizedBox(width: AppSpacing.md),
 
-        // Minimal letter avatar
         Container(
-          width: 42.r,
-          height: 42.r,
+          width: 46.r,
+          height: 46.r,
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.primaryLight.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(15.r),
+            color: AppColors.primaryLight.withValues(alpha: .55),
+            border: Border.all(color: AppColors.primary.withValues(alpha: .08)),
           ),
           child: Center(
             child: Text(
