@@ -29,6 +29,22 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
+  Future<void> restoreHabit(String habitId) async {
+    final habit = _box.get(habitId);
+
+    if (habit == null) return;
+
+    final restoredHabit = habit.copyWith(
+      isArchived: false,
+      updatedAt: DateTime.now(),
+    );
+
+    await _box.put(habitId, restoredHabit);
+  }
+
+
+
+  @override
   Future<void> deleteHabit(String habitId) async {
     await _box.delete(habitId);
   }
@@ -40,9 +56,7 @@ class HabitRepositoryImpl implements HabitRepository {
 
   @override
   Future<List<HabitModel>> getHabits() async {
-    return _box.values
-        .where((habit) => !habit.isArchived)
-        .toList();
+    return _box.values.toList();
   }
 
   @override

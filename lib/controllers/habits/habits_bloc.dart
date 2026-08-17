@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../models/habit/habit_frequency.dart';
 import '../../models/habit/habit_with_completion.dart';
 import '../../repositories/habits/completion_repository.dart';
 import '../../repositories/habits/habit_repository.dart';
@@ -17,6 +18,7 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
     on<UpdateHabit>(_onUpdateHabit);
     on<DeleteHabit>(_onDeleteHabit);
     on<ArchiveHabit>(_onArchiveHabit);
+    on<RestoreHabit>(_onRestoreHabit);
     on<ToggleHabitCompletion>(_onToggleHabitCompletion);
   }
 
@@ -30,8 +32,9 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
       final habits = await _repository.getHabits();
 
       final habitsWithCompletion = <HabitWithCompletion>[];
-
+      final todayWeekday = (DateTime.now().weekday - 1);
       int completedToday = 0;
+      int todaysTotalCount = 0;
 
       for (final habit in habits) {
         final completed = await _completionRepository.isCompleted(
@@ -39,8 +42,31 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
           date: DateTime.now(),
         );
 
-        if (completed) {
-          completedToday++;
+        // Check if scheduled today
+        bool isScheduledToday = false;
+        if (!habit.isArchived) {
+          switch (habit.frequency) {
+            case HabitFrequency.daily:
+              isScheduledToday = true;
+              break;
+            case HabitFrequency.weekly:
+              if (habit.targetDays.isNotEmpty) {
+                isScheduledToday = habit.targetDays.contains(todayWeekday);
+              } else {
+                isScheduledToday = (habit.createdAt.weekday - 1) == todayWeekday;
+              }
+              break;
+            case HabitFrequency.custom:
+              isScheduledToday = habit.targetDays.contains(todayWeekday);
+              break;
+          }
+        }
+
+        if (isScheduledToday) {
+          todaysTotalCount++;
+          if (completed) {
+            completedToday++;
+          }
         }
 
         habitsWithCompletion.add(
@@ -48,16 +74,14 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
         );
       }
 
-      // NEW
       final weekProgress = await _completionRepository.getCurrentWeekProgress();
-
       final currentStreak = await _completionRepository.getCurrentStreak();
 
       emit(
         HabitsLoaded(
           habits: habitsWithCompletion,
           completedToday: completedToday,
-          totalHabits: habits.length,
+          totalHabits: todaysTotalCount,
           weekProgress: weekProgress,
           currentStreak: currentStreak,
         ),
@@ -110,6 +134,18 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
     try {
       await _repository.archiveHabit(event.habitId);
 
+      add(const LoadHabits());
+    } catch (e) {
+      emit(HabitsError(e.toString()));
+    }
+  }
+
+  Future<void> _onRestoreHabit(
+      RestoreHabit event,
+      Emitter<HabitsState> emit,
+      ) async {
+    try {
+      await _repository.restoreHabit(event.habitId);
       add(const LoadHabits());
     } catch (e) {
       emit(HabitsError(e.toString()));

@@ -31,13 +31,19 @@ class TodaysHabitsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final activeHabits =
+        habits.where((h) => !h.isCompletedToday).toList();
+    final completedHabits =
+        habits.where((h) => h.isCompletedToday).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Section header
         Row(
           children: [
             Text(
-              "Daily routine",
+              "Today's Habits",
               style: AppTextStyles.heading2.copyWith(
                 fontWeight: FontWeight.w700,
                 fontSize: 18.sp,
@@ -59,182 +65,102 @@ class TodaysHabitsSection extends StatelessWidget {
           ],
         ),
 
-        SizedBox(height: AppSpacing.md),
+        SizedBox(height: 14.h),
 
         Expanded(
-          child: ListView.builder(
+          child: ListView(
             physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.zero,
-            itemCount: habits.length,
-            itemBuilder: (context, index) {
-              final habit = habits[index];
-              final isFirst = index == 0;
-              final isLast = index == habits.length - 1;
-              final isCompleted = habit.isCompletedToday;
-              
-              final isPrevCompleted = index > 0 && habits[index - 1].isCompletedToday;
-              final isNextCompleted = index < habits.length - 1 && habits[index + 1].isCompletedToday;
-
-              return IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Timeline Node & Line Column
-                    SizedBox(
-                      width: 36.w,
-                      child: Stack(
-                        alignment: Alignment.topCenter,
-                        children: [
-                          // Top Half Line Segment
-                          if (!isFirst)
-                            Positioned(
-                              top: 0,
-                              height: 27.h,
-                              left: 17.w,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 250),
-                                width: 2.w,
-                                color: isCompleted && isPrevCompleted
-                                    ? AppColors.primary
-                                    : AppColors.divider,
-                              ),
-                            ),
-
-                          // Bottom Half Line Segment
-                          if (!isLast)
-                            Positioned(
-                              top: 27.h,
-                              bottom: 0,
-                              left: 17.w,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 250),
-                                width: 2.w,
-                                color: isCompleted && isNextCompleted
-                                    ? AppColors.primary
-                                    : AppColors.divider,
-                              ),
-                            ),
-
-                          // Timeline Checkbox Circle / Button
-                          Padding(
-                            padding: EdgeInsets.only(top: 14.h),
-                            child: GestureDetector(
-                              onTap: () => onHabitTap(habit.habit),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 250),
-                                width: 26.r,
-                                height: 26.r,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: isCompleted
-                                      ? AppColors.primary
-                                      : Colors.white,
-                                  border: Border.all(
-                                    color: isCompleted
-                                        ? AppColors.primary
-                                        : AppColors.border,
-                                    width: 2,
-                                  ),
-                                  boxShadow: isCompleted
-                                      ? [
-                                          BoxShadow(
-                                            color: AppColors.primary
-                                                .withValues(alpha: 0.35),
-                                            blurRadius: 6,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: AnimatedScale(
-                                  duration: const Duration(milliseconds: 200),
-                                  scale: isCompleted ? 1.0 : 0.0,
-                                  child: Icon(
-                                    Icons.check_rounded,
-                                    color: Colors.white,
-                                    size: 16.sp,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+            padding: EdgeInsets.only(bottom: 100.h),
+            children: [
+              // Active / Ongoing habits
+              if (activeHabits.isEmpty && completedHabits.isNotEmpty)
+                const _AllDoneBanner()
+              else
+                ...List.generate(activeHabits.length, (index) {
+                  final habit = activeHabits[index];
+                  final isLast = index == activeHabits.length - 1 &&
+                      completedHabits.isEmpty;
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: isLast ? 0 : 12.h,
                     ),
+                    child: _buildDismissibleCard(context, habit),
+                  );
+                }),
 
-                    SizedBox(width: 8.w),
-
-                    // Habit Card & Swipe Actions
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          bottom: isLast ? 0 : AppSpacing.md,
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(AppRadius.lg),
-                          child: Dismissible(
-                            key: ValueKey(habit.habit.id),
-                            background: _archiveBackground(),
-                            secondaryBackground: _deleteBackground(),
-                            // 50% threshold = intentional swipe required (friction)
-                            dismissThresholds: const {
-                              DismissDirection.startToEnd: 0.5,
-                              DismissDirection.endToStart: 0.5,
-                            },
-                            movementDuration: const Duration(milliseconds: 200),
-                            confirmDismiss: (direction) async {
-                              if (direction == DismissDirection.startToEnd) {
-                                // Medium haptic for archive (softer action)
-                                HapticFeedback.mediumImpact();
-                                return true;
-                              }
-                              // Heavy haptic for delete (destructive action)
-                              HapticFeedback.heavyImpact();
-                              return await _showDeleteDialog(context);
-                            },
-                            onDismissed: (direction) {
-                              if (direction == DismissDirection.startToEnd) {
-                                context
-                                    .read<HabitsBloc>()
-                                    .add(ArchiveHabit(habit.habit.id));
-
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Habit archived"),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              } else {
-                                context
-                                    .read<HabitsBloc>()
-                                    .add(DeleteHabit(habit.habit.id));
-
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Habit deleted"),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              }
-                            },
-                            child: HabitCard(
-                              habit: habit,
-                              isSelected: selectedHabitId == habit.habit.id,
-                              onTap: () => onHabitTap(habit.habit),
-                              onLongPress: () => onHabitLongPress(habit.habit),
-                              onEdit: () => onEditHabit(habit.habit),
-                            ),
-                          ),
-                        ),
-                      ),
+              // Completed section header (only when there are completed habits)
+              if (completedHabits.isNotEmpty) ...[
+                SizedBox(height: 20.h),
+                _CompletedSectionHeader(count: completedHabits.length),
+                SizedBox(height: 14.h),
+                ...List.generate(completedHabits.length, (index) {
+                  final habit = completedHabits[index];
+                  final isLast = index == completedHabits.length - 1;
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: isLast ? 0 : 12.h,
                     ),
-                  ],
-                ),
-              );
-            },
+                    child: _buildDismissibleCard(context, habit),
+                  );
+                }),
+              ],
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDismissibleCard(
+    BuildContext context,
+    HabitWithCompletion habit,
+  ) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.xl),
+      child: Dismissible(
+        key: ValueKey(habit.habit.id),
+        background: _archiveBackground(),
+        secondaryBackground: _deleteBackground(),
+        dismissThresholds: const {
+          DismissDirection.startToEnd: 0.5,
+          DismissDirection.endToStart: 0.5,
+        },
+        movementDuration: const Duration(milliseconds: 200),
+        confirmDismiss: (direction) async {
+          if (direction == DismissDirection.startToEnd) {
+            HapticFeedback.mediumImpact();
+            return true;
+          }
+          HapticFeedback.heavyImpact();
+          return await _showDeleteDialog(context);
+        },
+        onDismissed: (direction) {
+          if (direction == DismissDirection.startToEnd) {
+            context.read<HabitsBloc>().add(ArchiveHabit(habit.habit.id));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Habit archived"),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          } else {
+            context.read<HabitsBloc>().add(DeleteHabit(habit.habit.id));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Habit deleted"),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        child: HabitCard(
+          habit: habit,
+          isSelected: selectedHabitId == habit.habit.id,
+          onTap: () => onHabitTap(habit.habit),
+          onLongPress: () => onHabitLongPress(habit.habit),
+          onEdit: () => onEditHabit(habit.habit),
+        ),
+      ),
     );
   }
 
@@ -244,7 +170,7 @@ class TodaysHabitsSection extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
       child: Row(
         children: [
@@ -280,7 +206,7 @@ class TodaysHabitsSection extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       decoration: BoxDecoration(
         color: AppColors.error.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -363,7 +289,8 @@ class TodaysHabitsSection extends StatelessWidget {
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(color: AppColors.border),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.pill),
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.pill),
                             ),
                             padding: EdgeInsets.symmetric(vertical: 12.h),
                           ),
@@ -384,7 +311,8 @@ class TodaysHabitsSection extends StatelessWidget {
                           style: FilledButton.styleFrom(
                             backgroundColor: AppColors.error,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.pill),
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.pill),
                             ),
                             padding: EdgeInsets.symmetric(vertical: 12.h),
                           ),
@@ -407,5 +335,129 @@ class TodaysHabitsSection extends StatelessWidget {
           ),
         ) ??
         false;
+  }
+}
+
+class _CompletedSectionHeader extends StatelessWidget {
+  final int count;
+  const _CompletedSectionHeader({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.divider.withValues(alpha: 0.0),
+                  AppColors.divider,
+                ],
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10.w),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.check_circle_outline_rounded,
+                size: 14.sp,
+                color: AppColors.primary.withValues(alpha: 0.55),
+              ),
+              SizedBox(width: 5.w),
+              Text(
+                "Completed · $count",
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textMuted,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.sp,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.divider,
+                  AppColors.divider.withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AllDoneBanner extends StatelessWidget {
+  const _AllDoneBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: 20.w,
+        vertical: 18.h,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.15),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42.r,
+            height: 42.r,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.celebration_rounded,
+              color: AppColors.primary,
+              size: 22.sp,
+            ),
+          ),
+          SizedBox(width: 14.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "All Habits Completed! 🎉",
+                  style: AppTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14.sp,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  "You've crushed all your routine tasks for today.",
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textMuted,
+                    fontSize: 12.sp,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
