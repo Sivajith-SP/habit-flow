@@ -102,22 +102,37 @@ class CompletionRepositoryImpl implements CompletionRepository {
 
     DateTime day = DateTime.now();
 
-    while (true) {
-      final completed = _box.values.any(
+    bool hasCompletionOnDate(DateTime date) {
+      return _box.values.any(
         (completion) =>
             completion.completed &&
-            completion.date.year == day.year &&
-            completion.date.month == day.month &&
-            completion.date.day == day.day,
+            completion.date.year == date.year &&
+            completion.date.month == date.month &&
+            completion.date.day == date.day,
       );
+    }
 
-      if (!completed) break;
+    // If today is not completed yet, start checking from yesterday.
+    if (!hasCompletionOnDate(day)) {
+      day = day.subtract(const Duration(days: 1));
+    }
 
+    while (hasCompletionOnDate(day)) {
       streak++;
-
       day = day.subtract(const Duration(days: 1));
     }
 
     return streak;
+  }
+
+  @override
+  Future<int> getMonthlyCompleted() async {
+    final now = DateTime.now();
+
+    return _box.values.where((completion) {
+      return completion.completed &&
+          completion.date.year == now.year &&
+          completion.date.month == now.month;
+    }).length;
   }
 }
