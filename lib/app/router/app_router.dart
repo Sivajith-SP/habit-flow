@@ -7,6 +7,8 @@ import 'package:habitflow/views/shell/app_shell.dart';
 
 import '../../controllers/habits/habits_bloc.dart';
 import '../../controllers/habits/habits_event.dart';
+import '../../controllers/statistics/statistics_bloc.dart';
+import '../../controllers/statistics/statistics_event.dart';
 import '../../views/auth/login_screen.dart';
 import '../../views/auth/register_screen.dart';
 import '../../views/splash/splash_screen.dart';
@@ -47,6 +49,9 @@ class AppRouter {
             BlocProvider(create: (_) => getIt<AuthBloc>()),
             BlocProvider(
               create: (_) => getIt<HabitsBloc>()..add(const LoadHabits()),
+            ),
+            BlocProvider(
+              create: (_) => getIt<StatisticsBloc>()..add(const LoadStatistics()),
             ),
           ],
           child: const AppShell(),

@@ -1,6 +1,7 @@
 import 'package:hive/hive.dart';
 
 import '../../core/services/hive_service.dart';
+import '../../models/habit/habit_frequency.dart';
 import '../../models/habit/habit_model.dart';
 import 'habit_repository.dart';
 
@@ -42,8 +43,6 @@ class HabitRepositoryImpl implements HabitRepository {
     await _box.put(habitId, restoredHabit);
   }
 
-
-
   @override
   Future<void> deleteHabit(String habitId) async {
     await _box.delete(habitId);
@@ -62,5 +61,48 @@ class HabitRepositoryImpl implements HabitRepository {
   @override
   Future<void> updateHabit(HabitModel habit) async {
     await _box.put(habit.id, habit);
+  }
+
+  @override
+  Future<int> getMonthlyScheduledCount() async {
+    final now = DateTime.now();
+
+    final firstDay = DateTime(now.year, now.month, 1);
+    final lastDay = DateTime(now.year, now.month + 1, 0);
+
+    final activeHabits = _box.values
+        .where((habit) => !habit.isArchived)
+        .toList();
+
+    int total = 0;
+
+    for (final habit in activeHabits) {
+      for (
+        DateTime date = firstDay;
+        !date.isAfter(lastDay);
+        date = date.add(const Duration(days: 1))
+      ) {
+        switch (habit.frequency) {
+          case HabitFrequency.daily:
+            total++;
+            break;
+
+          case HabitFrequency.weekly:
+            // Weekly habit is scheduled on its first target day.
+            if (habit.targetDays.contains(date.weekday - 1)) {
+              total++;
+            }
+            break;
+
+          case HabitFrequency.custom:
+            if (habit.targetDays.contains(date.weekday - 1)) {
+              total++;
+            }
+            break;
+        }
+      }
+    }
+
+    return total;
   }
 }

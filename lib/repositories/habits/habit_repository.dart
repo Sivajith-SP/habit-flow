@@ -14,4 +14,6 @@ abstract class HabitRepository {
   Future<void> restoreHabit(String habitId);
 
   Future<HabitModel?> getHabitById(String habitId);
+
+  Future<int> getMonthlyScheduledCount();
 }

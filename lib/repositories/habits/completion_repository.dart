@@ -14,4 +14,6 @@ abstract class CompletionRepository {
 
   Future<int> getCurrentStreak();
 
+  Future<int> getMonthlyCompleted();
+
 }
