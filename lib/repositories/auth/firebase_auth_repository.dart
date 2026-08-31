@@ -10,6 +10,13 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   bool get isLoggedIn => _firebaseAuth.currentUser != null;
 
+  @override
+  String? get currentUserEmail => _firebaseAuth.currentUser?.email;
+
+  @override
+  String? get currentUserId => _firebaseAuth.currentUser?.uid;
+
+
   // login()
   @override
   Future<void> login({required String email, required String password}) async {

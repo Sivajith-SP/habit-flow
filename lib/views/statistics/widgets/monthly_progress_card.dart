@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_radius.dart';
 import '../../../app/theme/app_shadows.dart';
 import '../../../app/theme/app_spacing.dart';
@@ -19,26 +18,40 @@ class MonthlyProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final percentage = monthlyTotal == 0
         ? 0
         : ((monthlyCompleted / monthlyTotal) * 100).round();
     return Container(
       padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: AppShadows.soft,
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.35),
+        ),
+        boxShadow: isDark ? null : AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Monthly Progress', style: AppTextStyles.title),
+          Text(
+            'Monthly Progress',
+            style: AppTextStyles.title.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
 
           SizedBox(height: AppSpacing.xs),
 
           Text(
             'Your overall consistency this month',
-            style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
+            style: AppTextStyles.caption.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
 
           SizedBox(height: AppSpacing.lg),
@@ -55,18 +68,20 @@ class MonthlyProgressCard extends StatelessWidget {
                       width: 82.w,
                       height: 82.w,
                       child: CircularProgressIndicator(
-                        value: 0.65,
+                        value: monthlyTotal == 0
+                            ? 0.0
+                            : (monthlyCompleted / monthlyTotal).clamp(0.0, 1.0),
                         strokeWidth: 8.w,
-                        backgroundColor: AppColors.primaryLight.withValues(
-                          alpha: 0.35,
+                        backgroundColor: colorScheme.primary.withValues(
+                          alpha: 0.15,
                         ),
-                        color: AppColors.primary,
+                        color: colorScheme.primary,
                       ),
                     ),
                     Text(
                       '$percentage%',
                       style: AppTextStyles.title.copyWith(
-                        color: AppColors.primary,
+                        color: colorScheme.primary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -80,12 +95,18 @@ class MonthlyProgressCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Great progress!', style: AppTextStyles.title),
+                    Text(
+                      'Great progress!',
+                      style: AppTextStyles.title.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     SizedBox(height: AppSpacing.xs),
                     Text(
                       'Keep completing your habits to improve your consistency.',
                       style: AppTextStyles.caption.copyWith(
-                        color: AppColors.textMuted,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],

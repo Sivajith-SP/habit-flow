@@ -11,6 +11,7 @@ import '../../controllers/statistics/statistics_bloc.dart';
 import '../../controllers/statistics/statistics_event.dart';
 import '../../views/auth/login_screen.dart';
 import '../../views/auth/register_screen.dart';
+import '../../views/profile/profile_screen.dart';
 import '../../views/splash/splash_screen.dart';
 import 'app_routes.dart';
 
@@ -40,6 +41,13 @@ class AppRouter {
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthBloc>(),
           child: const RegisterScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.profile,
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<AuthBloc>(),
+          child: const ProfileScreen(),
         ),
       ),
       GoRoute(

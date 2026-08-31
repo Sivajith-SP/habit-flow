@@ -30,6 +30,9 @@ class HabitManagementCard extends StatelessWidget {
     final model = habit.habit;
     final isArchived = model.isArchived;
 
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       borderRadius: BorderRadius.circular(AppRadius.xl),
       onTap: onTap,
@@ -37,20 +40,19 @@ class HabitManagementCard extends StatelessWidget {
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadius.xl),
           border: Border.all(
-            color: AppColors.border.withValues(alpha: 0.35),
-            width: 1,
+            color: colorScheme.outline.withValues(alpha: 0.35),
           ),
-          boxShadow: AppShadows.soft,
+          boxShadow: isDark ? null : AppShadows.soft,
         ),
         clipBehavior: Clip.hardEdge,
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Left gradient accent bar — matches DashboardHabitCard
+              // Left accent bar
               Container(
                 width: 4.w,
                 decoration: BoxDecoration(
@@ -59,18 +61,17 @@ class HabitManagementCard extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: isArchived
                         ? [
-                            AppColors.border.withValues(alpha: 0.4),
-                            AppColors.border.withValues(alpha: 0.2),
-                          ]
+                      colorScheme.outline.withValues(alpha: 0.4),
+                      colorScheme.outline.withValues(alpha: 0.15),
+                    ]
                         : [
-                            AppColors.primary,
-                            AppColors.primaryDark,
-                          ],
+                      colorScheme.primary,
+                      AppColors.primaryDark,
+                    ],
                   ),
                 ),
               ),
 
-              // Content area
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.symmetric(
@@ -80,14 +81,14 @@ class HabitManagementCard extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Icon container
+                      // Icon
                       Container(
                         width: 46.r,
                         height: 46.r,
                         decoration: BoxDecoration(
                           color: isArchived
-                              ? AppColors.border.withValues(alpha: 0.25)
-                              : AppColors.primaryLight.withValues(alpha: 0.55),
+                              ? colorScheme.surfaceContainerHighest
+                              : colorScheme.primary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(14.r),
                         ),
                         alignment: Alignment.center,
@@ -97,15 +98,15 @@ class HabitManagementCard extends StatelessWidget {
                             fontFamily: 'MaterialIcons',
                           ),
                           color: isArchived
-                              ? AppColors.textMuted
-                              : AppColors.primary,
+                              ? colorScheme.onSurfaceVariant
+                              : colorScheme.primary,
                           size: 23.sp,
                         ),
                       ),
 
                       SizedBox(width: 14.w),
 
-                      // Title + subtitle + chips
+                      // Content
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,8 +120,8 @@ class HabitManagementCard extends StatelessWidget {
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15.sp,
                                 color: isArchived
-                                    ? AppColors.textMuted
-                                    : AppColors.textPrimary,
+                                    ? colorScheme.onSurfaceVariant
+                                    : colorScheme.onSurface,
                               ),
                             ),
 
@@ -133,7 +134,7 @@ class HabitManagementCard extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTextStyles.caption.copyWith(
-                                color: AppColors.textMuted,
+                                color: colorScheme.onSurfaceVariant,
                                 fontSize: 12.sp,
                               ),
                             ),
@@ -144,20 +145,24 @@ class HabitManagementCard extends StatelessWidget {
                               children: [
                                 _Chip(
                                   label: _frequencyLabel(model.frequency),
-                                  color: AppColors.primaryLight
-                                      .withValues(alpha: 0.55),
-                                  textColor: AppColors.primary,
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.12,
+                                  ),
+                                  textColor: colorScheme.primary,
                                 ),
+
                                 SizedBox(width: AppSpacing.xs),
+
                                 _Chip(
                                   label: isArchived ? 'Archived' : 'Active',
                                   color: isArchived
-                                      ? AppColors.accentCream
-                                      : AppColors.primaryLight
-                                          .withValues(alpha: 0.55),
+                                      ? colorScheme.surfaceContainerHighest
+                                      : colorScheme.primary.withValues(
+                                    alpha: 0.12,
+                                  ),
                                   textColor: isArchived
-                                      ? AppColors.textSecondary
-                                      : AppColors.primary,
+                                      ? colorScheme.onSurfaceVariant
+                                      : colorScheme.primary,
                                 ),
                               ],
                             ),
@@ -167,7 +172,6 @@ class HabitManagementCard extends StatelessWidget {
 
                       SizedBox(width: 4.w),
 
-                      // Themed popup menu
                       _ThemedPopupMenu(
                         isArchived: isArchived,
                         onEdit: onEdit,
@@ -189,17 +193,15 @@ class HabitManagementCard extends StatelessWidget {
     switch (frequency) {
       case HabitFrequency.daily:
         return 'Daily';
+
       case HabitFrequency.weekly:
         return 'Weekly';
+
       case HabitFrequency.custom:
         return 'Custom';
     }
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Themed Popup Menu Button
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _ThemedPopupMenu extends StatelessWidget {
   final bool isArchived;
@@ -216,22 +218,24 @@ class _ThemedPopupMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Theme(
       data: Theme.of(context).copyWith(
         popupMenuTheme: PopupMenuThemeData(
-          color: AppColors.card,
+          color: colorScheme.surface,
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg),
             side: BorderSide(
-              color: AppColors.border.withValues(alpha: 0.35),
+              color: colorScheme.outline.withValues(alpha: 0.35),
             ),
           ),
           elevation: 8,
           shadowColor: AppColors.shadow,
           textStyle: AppTextStyles.body.copyWith(
             fontSize: 14,
-            color: AppColors.textPrimary,
+            color: colorScheme.onSurface,
           ),
         ),
       ),
@@ -241,9 +245,11 @@ class _ThemedPopupMenu extends StatelessWidget {
             case 'edit':
               onEdit?.call();
               break;
+
             case 'archive':
               onArchive?.call();
               break;
+
             case 'delete':
               onDelete?.call();
               break;
@@ -253,37 +259,42 @@ class _ThemedPopupMenu extends StatelessWidget {
           width: 34.r,
           height: 34.r,
           decoration: BoxDecoration(
-            color: AppColors.primaryLight.withValues(alpha: 0.45),
+            color: colorScheme.primary.withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
           child: Icon(
             Icons.more_horiz_rounded,
-            color: AppColors.primary,
+            color: colorScheme.primary,
             size: 18.sp,
           ),
         ),
         padding: EdgeInsets.zero,
         itemBuilder: (_) => [
           _menuItem(
+            context: context,
             value: 'edit',
             icon: Icons.edit_rounded,
             label: 'Edit',
-            iconColor: AppColors.primary,
+            iconColor: colorScheme.primary,
           ),
+
           _menuItem(
+            context: context,
             value: 'archive',
             icon: isArchived
                 ? Icons.unarchive_rounded
                 : Icons.archive_outlined,
             label: isArchived ? 'Restore' : 'Archive',
-            iconColor: AppColors.textSecondary,
+            iconColor: colorScheme.onSurfaceVariant,
           ),
+
           _menuItem(
+            context: context,
             value: 'delete',
             icon: Icons.delete_outline_rounded,
             label: 'Delete',
-            iconColor: AppColors.error,
-            labelColor: AppColors.error,
+            iconColor: colorScheme.error,
+            labelColor: colorScheme.error,
           ),
         ],
       ),
@@ -291,24 +302,36 @@ class _ThemedPopupMenu extends StatelessWidget {
   }
 
   PopupMenuItem<String> _menuItem({
+    required BuildContext context,
     required String value,
     required IconData icon,
     required String label,
     required Color iconColor,
     Color? labelColor,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return PopupMenuItem<String>(
       value: value,
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: 16.w,
+        vertical: 4.h,
+      ),
       child: Row(
         children: [
-          Icon(icon, size: 18.sp, color: iconColor),
+          Icon(
+            icon,
+            size: 18.sp,
+            color: iconColor,
+          ),
+
           SizedBox(width: 10.w),
+
           Text(
             label,
             style: AppTextStyles.body.copyWith(
               fontSize: 14.sp,
-              color: labelColor ?? AppColors.textPrimary,
+              color: labelColor ?? colorScheme.onSurface,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -317,10 +340,6 @@ class _ThemedPopupMenu extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Chip Badge — matches dashboard habit card frequency badge
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _Chip extends StatelessWidget {
   final String label;
@@ -336,7 +355,10 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 4.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: 9.w,
+        vertical: 4.h,
+      ),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(AppRadius.pill),

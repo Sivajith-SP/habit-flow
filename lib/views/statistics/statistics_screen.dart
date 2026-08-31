@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:habitflow/views/statistics/widgets/monthly_progress_card.dart';
 import 'package:habitflow/views/statistics/widgets/statistics_overview_card.dart';
 import 'package:habitflow/views/statistics/widgets/streak_card.dart';
 import 'package:habitflow/views/statistics/widgets/weekly_progress_card.dart';
 
-import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_spacing.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../controllers/statistics/statistics_bloc.dart';
@@ -16,29 +16,44 @@ class StatisticsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colorScheme.surface),
+      child: SafeArea(
+        bottom: false,
         child: Padding(
-          padding: EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Statistics', style: AppTextStyles.heading2),
+              SizedBox(height: 16.h),
+              Text(
+                'Statistics',
+                style: AppTextStyles.heading1.copyWith(
+                  fontSize: 26.sp,
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurface,
+                  height: 1.15,
+                ),
+              ),
 
-              SizedBox(height: AppSpacing.xs),
+              SizedBox(height: 2.h),
 
               Text(
                 'Track your habit progress',
                 style: AppTextStyles.body.copyWith(
-                  color: AppColors.textSecondary,
+                  fontSize: 14.sp,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
 
-              SizedBox(height: AppSpacing.xl),
+              SizedBox(height: AppSpacing.lg),
 
               Expanded(
                 child: ListView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.only(bottom: 100.h),
                   children: [
                     BlocBuilder<StatisticsBloc, StatisticsState>(
                       builder: (context, state) {

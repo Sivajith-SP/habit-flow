@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_radius.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_styles.dart';
@@ -60,9 +59,11 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
       _titleController.text = widget.habit!.title;
       _descriptionController.text = widget.habit!.description;
       _frequency = widget.habit!.frequency;
+
       _selectedDays
         ..clear()
         ..addAll(widget.habit!.targetDays);
+
       _selectedIcon = IconData(
         widget.habit!.iconCodePoint,
         fontFamily: 'MaterialIcons',
@@ -115,9 +116,11 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       child: SafeArea(
@@ -136,13 +139,13 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Top Drag Handle
+                  // Drag handle
                   Center(
                     child: Container(
                       width: 38.w,
                       height: 4.h,
                       decoration: BoxDecoration(
-                        color: AppColors.divider,
+                        color: colorScheme.outlineVariant,
                         borderRadius: BorderRadius.circular(AppRadius.pill),
                       ),
                     ),
@@ -150,23 +153,24 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
 
                   SizedBox(height: AppSpacing.md),
 
-                  // Header Row
+                  // Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        widget.habit == null ? "Create Habit" : "Edit Habit",
+                        widget.habit == null ? 'Create Habit' : 'Edit Habit',
                         style: AppTextStyles.heading2.copyWith(
                           fontWeight: FontWeight.w700,
                           fontSize: 20.sp,
-                          color: AppColors.textPrimary,
+                          color: colorScheme.onSurface,
                         ),
                       ),
+
                       IconButton(
                         onPressed: () => Navigator.pop(context),
                         icon: Icon(
                           Icons.close_rounded,
-                          color: AppColors.textMuted,
+                          color: colorScheme.onSurfaceVariant,
                           size: 22.sp,
                         ),
                       ),
@@ -175,104 +179,48 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
 
                   SizedBox(height: AppSpacing.md),
 
-                  // Habit Name Input
+                  // Habit name
                   TextFormField(
                     controller: _titleController,
                     style: AppTextStyles.body.copyWith(
                       fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
+                      color: colorScheme.onSurface,
                     ),
-                    decoration: InputDecoration(
-                      labelText: "Habit Name",
-                      hintText: "e.g. Drink 2L Water",
-                      labelStyle: AppTextStyles.caption.copyWith(
-                        color: AppColors.textMuted,
-                      ),
-                      filled: true,
-                      fillColor: AppColors.background.withValues(alpha: 0.5),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: 14.h,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide(
-                          color: AppColors.border.withValues(alpha: 0.4),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: const BorderSide(
-                          color: AppColors.primary,
-                          width: 1.5,
-                        ),
-                      ),
+                    decoration: _inputDecoration(
+                      context,
+                      label: 'Habit Name',
+                      hint: 'e.g. Drink 2L Water',
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return "Habit name is required";
+                        return 'Habit name is required';
                       }
+
                       return null;
                     },
                   ),
 
                   SizedBox(height: AppSpacing.md),
 
-                  // Description Input
+                  // Description
                   TextFormField(
                     controller: _descriptionController,
+                    maxLines: 2,
                     style: AppTextStyles.body.copyWith(
                       fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
+                      color: colorScheme.onSurface,
                     ),
-                    decoration: InputDecoration(
-                      labelText: "Description (Optional)",
-                      hintText: "Add a gentle note or target",
-                      labelStyle: AppTextStyles.caption.copyWith(
-                        color: AppColors.textMuted,
-                      ),
-                      filled: true,
-                      fillColor: AppColors.background.withValues(alpha: 0.5),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: 14.h,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide(
-                          color: AppColors.border.withValues(alpha: 0.4),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: const BorderSide(
-                          color: AppColors.primary,
-                          width: 1.5,
-                        ),
-                      ),
+                    decoration: _inputDecoration(
+                      context,
+                      label: 'Description (Optional)',
+                      hint: 'Add a gentle note or target',
                     ),
-                    maxLines: 2,
                   ),
 
                   SizedBox(height: AppSpacing.lg),
 
-                  // Choose Icon Section
-                  Text(
-                    "Choose Icon",
-                    style: AppTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14.sp,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                  // Choose icon
+                  _sectionTitle(context, 'Choose Icon'),
 
                   SizedBox(height: AppSpacing.sm),
 
@@ -299,19 +247,20 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
                             height: 48.w,
                             decoration: BoxDecoration(
                               color: selected
-                                  ? AppColors.primary
-                                  : AppColors.background.withValues(alpha: 0.6),
+                                  ? colorScheme.primary
+                                  : colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               border: Border.all(
                                 color: selected
-                                    ? AppColors.primary
-                                    : AppColors.border.withValues(alpha: 0.3),
+                                    ? colorScheme.primary
+                                    : colorScheme.outlineVariant,
                               ),
                               boxShadow: selected
                                   ? [
                                       BoxShadow(
-                                        color: AppColors.primary
-                                            .withValues(alpha: 0.3),
+                                        color: colorScheme.primary.withValues(
+                                          alpha: 0.25,
+                                        ),
                                         blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
@@ -322,8 +271,8 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
                               icon,
                               size: 22.sp,
                               color: selected
-                                  ? Colors.white
-                                  : AppColors.textSecondary,
+                                  ? colorScheme.onPrimary
+                                  : colorScheme.onSurfaceVariant,
                             ),
                           ),
                         );
@@ -333,36 +282,32 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
 
                   SizedBox(height: AppSpacing.lg),
 
-                  // Frequency Selector Section
-                  Text(
-                    "Frequency",
-                    style: AppTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14.sp,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                  // Frequency
+                  _sectionTitle(context, 'Frequency'),
 
                   SizedBox(height: AppSpacing.sm),
 
                   Container(
                     padding: EdgeInsets.all(4.r),
                     decoration: BoxDecoration(
-                      color: AppColors.background.withValues(alpha: 0.6),
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(AppRadius.pill),
                     ),
                     child: Row(
                       children: [
                         _buildFrequencyTab(
-                          label: "Daily",
+                          context: context,
+                          label: 'Daily',
                           value: HabitFrequency.daily,
                         ),
                         _buildFrequencyTab(
-                          label: "Weekly",
+                          context: context,
+                          label: 'Weekly',
                           value: HabitFrequency.weekly,
                         ),
                         _buildFrequencyTab(
-                          label: "Custom",
+                          context: context,
+                          label: 'Custom',
                           value: HabitFrequency.custom,
                         ),
                       ],
@@ -372,21 +317,15 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
                   if (_frequency == HabitFrequency.custom) ...[
                     SizedBox(height: AppSpacing.lg),
 
-                    Text(
-                      "Choose Days",
-                      style: AppTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14.sp,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
+                    _sectionTitle(context, 'Choose Days'),
 
                     SizedBox(height: AppSpacing.sm),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: List.generate(7, (index) {
-                        const days = ["M", "T", "W", "T", "F", "S", "S"];
+                        const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
                         final selected = _selectedDays.contains(index);
 
                         return GestureDetector(
@@ -406,12 +345,12 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: selected
-                                  ? AppColors.primary
-                                  : AppColors.background.withValues(alpha: 0.6),
+                                  ? colorScheme.primary
+                                  : colorScheme.surfaceContainerHighest,
                               border: Border.all(
                                 color: selected
-                                    ? AppColors.primary
-                                    : AppColors.border.withValues(alpha: 0.3),
+                                    ? colorScheme.primary
+                                    : colorScheme.outlineVariant,
                               ),
                             ),
                             child: Center(
@@ -422,8 +361,8 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
                                       ? FontWeight.w700
                                       : FontWeight.w500,
                                   color: selected
-                                      ? Colors.white
-                                      : AppColors.textSecondary,
+                                      ? colorScheme.onPrimary
+                                      : colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ),
@@ -435,13 +374,14 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
 
                   SizedBox(height: AppSpacing.xl),
 
-                  // Submit Button
+                  // Submit button
                   SizedBox(
                     width: double.infinity,
                     height: AppSpacing.buttonHeight,
                     child: FilledButton(
                       style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.pill),
                         ),
@@ -449,10 +389,11 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
                       ),
                       onPressed: _saveHabit,
                       child: Text(
-                        widget.habit == null ? "Save Habit" : "Update Habit",
+                        widget.habit == null ? 'Save Habit' : 'Update Habit',
                         style: AppTextStyles.button.copyWith(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w700,
+                          color: colorScheme.onPrimary,
                         ),
                       ),
                     ),
@@ -466,10 +407,79 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
     );
   }
 
+  InputDecoration _inputDecoration(
+    BuildContext context, {
+    required String label,
+    required String hint,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+
+      labelStyle: AppTextStyles.caption.copyWith(
+        color: colorScheme.onSurfaceVariant,
+      ),
+
+      hintStyle: AppTextStyles.bodySmall.copyWith(
+        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.65),
+      ),
+
+      filled: true,
+      fillColor: colorScheme.surfaceContainerHighest,
+
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: 14.h,
+      ),
+
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderSide: BorderSide.none,
+      ),
+
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderSide: BorderSide(color: colorScheme.outlineVariant),
+      ),
+
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+      ),
+
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderSide: BorderSide(color: colorScheme.error),
+      ),
+
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderSide: BorderSide(color: colorScheme.error, width: 1.5),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(BuildContext context, String title) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Text(
+      title,
+      style: AppTextStyles.body.copyWith(
+        fontWeight: FontWeight.w700,
+        fontSize: 14.sp,
+        color: colorScheme.onSurface,
+      ),
+    );
+  }
+
   Widget _buildFrequencyTab({
+    required BuildContext context,
     required String label,
     required HabitFrequency value,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     final selected = _frequency == value;
 
     return Expanded(
@@ -483,12 +493,12 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
           duration: const Duration(milliseconds: 200),
           padding: EdgeInsets.symmetric(vertical: 8.h),
           decoration: BoxDecoration(
-            color: selected ? AppColors.card : Colors.transparent,
+            color: selected ? colorScheme.surface : Colors.transparent,
             borderRadius: BorderRadius.circular(AppRadius.pill),
             boxShadow: selected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: Colors.black.withValues(alpha: 0.08),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -501,8 +511,8 @@ class _AddHabitBottomSheetState extends State<AddHabitBottomSheet> {
               style: AppTextStyles.bodySmall.copyWith(
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: selected
-                    ? AppColors.textPrimary
-                    : AppColors.textSecondary,
+                    ? colorScheme.onSurface
+                    : colorScheme.onSurfaceVariant,
                 fontSize: 13.sp,
               ),
             ),

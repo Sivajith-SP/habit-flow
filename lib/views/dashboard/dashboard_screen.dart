@@ -30,6 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthInitial) {
@@ -46,8 +47,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
         },
         child: DecoratedBox(
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
           ),
           child: SafeArea(
             bottom: false,

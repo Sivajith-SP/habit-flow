@@ -31,15 +31,15 @@ class TodaysHabitsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeHabits =
-        habits.where((h) => !h.isCompletedToday).toList();
-    final completedHabits =
-        habits.where((h) => h.isCompletedToday).toList();
+    final activeHabits = habits.where((h) => !h.isCompletedToday).toList();
+
+    final completedHabits = habits.where((h) => h.isCompletedToday).toList();
+
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section header
         Row(
           children: [
             Text(
@@ -47,7 +47,7 @@ class TodaysHabitsSection extends StatelessWidget {
               style: AppTextStyles.heading2.copyWith(
                 fontWeight: FontWeight.w700,
                 fontSize: 18.sp,
-                color: AppColors.textPrimary,
+                color: colorScheme.onSurface,
               ),
             ),
             const Spacer(),
@@ -56,7 +56,7 @@ class TodaysHabitsSection extends StatelessWidget {
               child: Text(
                 "See all",
                 style: AppTextStyles.body.copyWith(
-                  color: AppColors.textMuted,
+                  color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                   fontSize: 13.sp,
                 ),
@@ -72,34 +72,36 @@ class TodaysHabitsSection extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             padding: EdgeInsets.only(bottom: 100.h),
             children: [
-              // Active / Ongoing habits
               if (activeHabits.isEmpty && completedHabits.isNotEmpty)
                 const _AllDoneBanner()
               else
                 ...List.generate(activeHabits.length, (index) {
                   final habit = activeHabits[index];
-                  final isLast = index == activeHabits.length - 1 &&
+
+                  final isLast =
+                      index == activeHabits.length - 1 &&
                       completedHabits.isEmpty;
+
                   return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: isLast ? 0 : 12.h,
-                    ),
+                    padding: EdgeInsets.only(bottom: isLast ? 0 : 12.h),
                     child: _buildDismissibleCard(context, habit),
                   );
                 }),
 
-              // Completed section header (only when there are completed habits)
               if (completedHabits.isNotEmpty) ...[
                 SizedBox(height: 20.h),
+
                 _CompletedSectionHeader(count: completedHabits.length),
+
                 SizedBox(height: 14.h),
+
                 ...List.generate(completedHabits.length, (index) {
                   final habit = completedHabits[index];
+
                   final isLast = index == completedHabits.length - 1;
+
                   return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: isLast ? 0 : 12.h,
-                    ),
+                    padding: EdgeInsets.only(bottom: isLast ? 0 : 12.h),
                     child: _buildDismissibleCard(context, habit),
                   );
                 }),
@@ -119,24 +121,33 @@ class TodaysHabitsSection extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.xl),
       child: Dismissible(
         key: ValueKey(habit.habit.id),
-        background: _archiveBackground(),
+
+        background: _archiveBackground(context),
+
         secondaryBackground: _deleteBackground(),
+
         dismissThresholds: const {
           DismissDirection.startToEnd: 0.5,
           DismissDirection.endToStart: 0.5,
         },
+
         movementDuration: const Duration(milliseconds: 200),
+
         confirmDismiss: (direction) async {
           if (direction == DismissDirection.startToEnd) {
             HapticFeedback.mediumImpact();
             return true;
           }
+
           HapticFeedback.heavyImpact();
+
           return await _showDeleteDialog(context);
         },
+
         onDismissed: (direction) {
           if (direction == DismissDirection.startToEnd) {
             context.read<HabitsBloc>().add(ArchiveHabit(habit.habit.id));
+
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Habit archived"),
@@ -145,6 +156,7 @@ class TodaysHabitsSection extends StatelessWidget {
             );
           } else {
             context.read<HabitsBloc>().add(DeleteHabit(habit.habit.id));
+
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Habit deleted"),
@@ -153,6 +165,7 @@ class TodaysHabitsSection extends StatelessWidget {
             );
           }
         },
+
         child: HabitCard(
           habit: habit,
           isSelected: selectedHabitId == habit.habit.id,
@@ -164,12 +177,14 @@ class TodaysHabitsSection extends StatelessWidget {
     );
   }
 
-  Widget _archiveBackground() {
+  Widget _archiveBackground(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       alignment: Alignment.centerLeft,
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.15),
+        color: colorScheme.primary.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
       child: Row(
@@ -177,20 +192,22 @@ class TodaysHabitsSection extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(8.r),
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              color: colorScheme.primary,
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.archive_outlined,
-              color: Colors.white,
+              color: colorScheme.onPrimary,
               size: 18.sp,
             ),
           ),
+
           SizedBox(width: 10.w),
+
           Text(
             "Archive",
             style: AppTextStyles.body.copyWith(
-              color: AppColors.primary,
+              color: colorScheme.primary,
               fontWeight: FontWeight.w700,
               fontSize: 14.sp,
             ),
@@ -219,7 +236,9 @@ class TodaysHabitsSection extends StatelessWidget {
               fontSize: 14.sp,
             ),
           ),
+
           SizedBox(width: 10.w),
+
           Container(
             padding: EdgeInsets.all(8.r),
             decoration: const BoxDecoration(
@@ -240,99 +259,120 @@ class TodaysHabitsSection extends StatelessWidget {
   Future<bool> _showDeleteDialog(BuildContext context) async {
     return await showDialog<bool>(
           context: context,
-          builder: (_) => Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-            ),
-            backgroundColor: AppColors.card,
-            surfaceTintColor: Colors.transparent,
-            child: Padding(
-              padding: EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(14.r),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.delete_forever_rounded,
-                      color: AppColors.error,
-                      size: 28.sp,
-                    ),
-                  ),
-                  SizedBox(height: AppSpacing.md),
-                  Text(
-                    "Delete Habit?",
-                    style: AppTextStyles.heading2.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18.sp,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  SizedBox(height: AppSpacing.xs),
-                  Text(
-                    "This action cannot be undone and will erase all progress for this habit.",
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 13.sp,
-                    ),
-                  ),
-                  SizedBox(height: AppSpacing.lg),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: AppColors.border),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.pill),
-                            ),
-                            padding: EdgeInsets.symmetric(vertical: 12.h),
-                          ),
-                          onPressed: () => Navigator.pop(context, false),
-                          child: Text(
-                            "Cancel",
-                            style: AppTextStyles.body.copyWith(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14.sp,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.error,
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.pill),
-                            ),
-                            padding: EdgeInsets.symmetric(vertical: 12.h),
-                          ),
-                          onPressed: () => Navigator.pop(context, true),
-                          child: Text(
-                            "Delete",
-                            style: AppTextStyles.body.copyWith(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14.sp,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+          builder: (dialogContext) {
+            final dialogColorScheme = Theme.of(dialogContext).colorScheme;
+
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.xl),
               ),
-            ),
-          ),
+              backgroundColor: dialogColorScheme.surface,
+              surfaceTintColor: Colors.transparent,
+              child: Padding(
+                padding: EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(14.r),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.delete_forever_rounded,
+                        color: AppColors.error,
+                        size: 28.sp,
+                      ),
+                    ),
+
+                    SizedBox(height: AppSpacing.md),
+
+                    Text(
+                      "Delete Habit?",
+                      style: AppTextStyles.heading2.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18.sp,
+                        color: dialogColorScheme.onSurface,
+                      ),
+                    ),
+
+                    SizedBox(height: AppSpacing.xs),
+
+                    Text(
+                      "This action cannot be undone and will erase all progress for this habit.",
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: dialogColorScheme.onSurfaceVariant,
+                        fontSize: 13.sp,
+                      ),
+                    ),
+
+                    SizedBox(height: AppSpacing.lg),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(
+                                color: dialogColorScheme.outline,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.pill,
+                                ),
+                              ),
+                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(dialogContext, false);
+                            },
+                            child: Text(
+                              "Cancel",
+                              style: AppTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.sp,
+                                color: dialogColorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(width: 12.w),
+
+                        Expanded(
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.error,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.pill,
+                                ),
+                              ),
+                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(dialogContext, true);
+                            },
+                            child: Text(
+                              "Delete",
+                              style: AppTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.sp,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ) ??
         false;
   }
@@ -340,10 +380,13 @@ class TodaysHabitsSection extends StatelessWidget {
 
 class _CompletedSectionHeader extends StatelessWidget {
   final int count;
+
   const _CompletedSectionHeader({required this.count});
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Expanded(
@@ -352,13 +395,14 @@ class _CompletedSectionHeader extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.divider.withValues(alpha: 0.0),
-                  AppColors.divider,
+                  colorScheme.outlineVariant.withValues(alpha: 0),
+                  colorScheme.outlineVariant,
                 ],
               ),
             ),
           ),
         ),
+
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 10.w),
           child: Row(
@@ -367,13 +411,15 @@ class _CompletedSectionHeader extends StatelessWidget {
               Icon(
                 Icons.check_circle_outline_rounded,
                 size: 14.sp,
-                color: AppColors.primary.withValues(alpha: 0.55),
+                color: colorScheme.primary.withValues(alpha: 0.65),
               ),
+
               SizedBox(width: 5.w),
+
               Text(
                 "Completed · $count",
                 style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textMuted,
+                  color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                   fontSize: 12.sp,
                 ),
@@ -381,14 +427,15 @@ class _CompletedSectionHeader extends StatelessWidget {
             ],
           ),
         ),
+
         Expanded(
           child: Container(
             height: 1,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.divider,
-                  AppColors.divider.withValues(alpha: 0.0),
+                  colorScheme.outlineVariant,
+                  colorScheme.outlineVariant.withValues(alpha: 0),
                 ],
               ),
             ),
@@ -404,17 +451,14 @@ class _AllDoneBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 20.w,
-        vertical: 18.h,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.05),
+        color: colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.15),
-        ),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -422,16 +466,18 @@ class _AllDoneBanner extends StatelessWidget {
             width: 42.r,
             height: 42.r,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.12),
+              color: colorScheme.primary.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.celebration_rounded,
-              color: AppColors.primary,
+              color: colorScheme.primary,
               size: 22.sp,
             ),
           ),
+
           SizedBox(width: 14.w),
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,14 +488,16 @@ class _AllDoneBanner extends StatelessWidget {
                   style: AppTextStyles.body.copyWith(
                     fontWeight: FontWeight.w700,
                     fontSize: 14.sp,
-                    color: AppColors.textPrimary,
+                    color: colorScheme.onSurface,
                   ),
                 ),
+
                 SizedBox(height: 2.h),
+
                 Text(
                   "You've crushed all your routine tasks for today.",
                   style: AppTextStyles.caption.copyWith(
-                    color: AppColors.textMuted,
+                    color: colorScheme.onSurfaceVariant,
                     fontSize: 12.sp,
                   ),
                 ),

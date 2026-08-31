@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_radius.dart';
 import '../../../app/theme/app_shadows.dart';
 import '../../../app/theme/app_spacing.dart';
@@ -34,6 +33,16 @@ class _HabitsLoadingStateState extends State<HabitsLoadingState>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final baseShimmer = isDark
+        ? colorScheme.surfaceContainerHighest
+        : const Color(0xFFE8EFE6);
+    final highlightShimmer = isDark
+        ? colorScheme.outline.withValues(alpha: 0.3)
+        : const Color(0xFFF5F9F4);
+
     return ListView.separated(
       padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
@@ -45,10 +54,10 @@ class _HabitsLoadingStateState extends State<HabitsLoadingState>
           final shimmerGradient = LinearGradient(
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
-            colors: const [
-              Color(0xFFE8EFE6),
-              Color(0xFFF5F9F4),
-              Color(0xFFE8EFE6),
+            colors: [
+              baseShimmer,
+              highlightShimmer,
+              baseShimmer,
             ],
             stops: [
               (_shimmerController.value - 0.3).clamp(0.0, 1.0),
@@ -59,12 +68,12 @@ class _HabitsLoadingStateState extends State<HabitsLoadingState>
 
           return Container(
             decoration: BoxDecoration(
-              color: AppColors.card,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(AppRadius.xl),
               border: Border.all(
-                color: AppColors.border.withValues(alpha: 0.25),
+                color: colorScheme.outline.withValues(alpha: 0.35),
               ),
-              boxShadow: AppShadows.soft,
+              boxShadow: isDark ? null : AppShadows.soft,
             ),
             clipBehavior: Clip.hardEdge,
             child: IntrinsicHeight(

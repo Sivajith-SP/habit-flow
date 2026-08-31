@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_radius.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_styles.dart';
@@ -14,17 +13,34 @@ class WeekCalendar extends StatelessWidget {
   List<DateTime> _currentWeekDays() {
     final now = DateTime.now();
     final monday = now.subtract(Duration(days: now.weekday - 1));
-    return List.generate(7, (i) => monday.add(Duration(days: i)));
+
+    return List.generate(
+      7,
+          (i) => monday.add(Duration(days: i)),
+    );
   }
 
   bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
+      a.year == b.year &&
+          a.month == b.month &&
+          a.day == b.day;
 
   String _monthLabel(DateTime first, DateTime last) {
     const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
+
     return first.month == last.month
         ? months[first.month - 1]
         : "${months[first.month - 1]} – ${months[last.month - 1]}";
@@ -32,14 +48,16 @@ class WeekCalendar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     const dayLabels = ["M", "T", "W", "T", "F", "S", "S"];
+
     final today = DateTime.now();
     final weekDays = _currentWeekDays();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 2.w),
           child: Row(
@@ -48,14 +66,18 @@ class WeekCalendar extends StatelessWidget {
               Text(
                 "This Week",
                 style: AppTextStyles.title.copyWith(
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.w700,
                   fontSize: 16.sp,
                 ),
               ),
               Text(
-                _monthLabel(weekDays.first, weekDays.last),
+                _monthLabel(
+                  weekDays.first,
+                  weekDays.last,
+                ),
                 style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textMuted,
+                  color: colorScheme.onSurfaceVariant,
                   fontSize: 12.sp,
                 ),
               ),
@@ -65,14 +87,19 @@ class WeekCalendar extends StatelessWidget {
 
         SizedBox(height: AppSpacing.md),
 
-        // Day chips
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(7, (index) {
             final day = weekDays[index];
+
             final isToday = _isSameDay(day, today);
+
             final isPast = day.isBefore(
-              DateTime(today.year, today.month, today.day),
+              DateTime(
+                today.year,
+                today.month,
+                today.day,
+              ),
             );
 
             return _DayChip(
@@ -87,10 +114,6 @@ class WeekCalendar extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────
-// Day chip — today solid, past faded, upcoming dashed border
-// ─────────────────────────────────────────────────────────────
 
 class _DayChip extends StatelessWidget {
   const _DayChip({
@@ -107,25 +130,26 @@ class _DayChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ── colours per state ──
-    final Color chipBg = isToday
-        ? AppColors.primary
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final chipBg = isToday
+        ? colorScheme.primary
         : Colors.transparent;
 
-    final Color labelColor = isToday
-        ? Colors.white.withValues(alpha: 0.8)
+    final labelColor = isToday
+        ? colorScheme.onPrimary.withValues(alpha: 0.8)
         : isPast
-            ? AppColors.textMuted.withValues(alpha: 0.5)
-            : AppColors.textSecondary;
+        ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+        : colorScheme.onSurfaceVariant;
 
-    final Color numColor = isToday
-        ? Colors.white
+    final numColor = isToday
+        ? colorScheme.onPrimary
         : isPast
-            ? AppColors.textSecondary.withValues(alpha: 0.45)
-            : AppColors.textPrimary;
+        ? colorScheme.onSurface.withValues(alpha: 0.45)
+        : colorScheme.onSurface;
 
-    const double chipW = 40;
-    const double chipH = 72;
+    const chipW = 40.0;
+    const chipH = 72.0;
 
     Widget chip = AnimatedContainer(
       duration: const Duration(milliseconds: 250),
@@ -136,12 +160,14 @@ class _DayChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: isToday
             ? [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ]
+          BoxShadow(
+            color: colorScheme.primary.withValues(
+              alpha: 0.3,
+            ),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ]
             : null,
       ),
       child: Column(
@@ -161,18 +187,19 @@ class _DayChip extends StatelessWidget {
             style: AppTextStyles.title.copyWith(
               color: numColor,
               fontSize: 15.sp,
-              fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
+              fontWeight: isToday
+                  ? FontWeight.w800
+                  : FontWeight.w600,
             ),
           ),
         ],
       ),
     );
 
-    // Wrap upcoming days with dashed border painter
     if (!isToday && !isPast) {
       chip = CustomPaint(
         painter: _DashedRoundedBorderPainter(
-          color: AppColors.border.withValues(alpha: 0.6),
+          color: colorScheme.outline.withValues(alpha: 0.6),
           radius: AppRadius.lg,
           dashWidth: 4,
           dashGap: 3,
@@ -185,10 +212,6 @@ class _DayChip extends StatelessWidget {
     return chip;
   }
 }
-
-// ─────────────────────────────────────────────────────────────
-// CustomPainter — dashed rounded rectangle border
-// ─────────────────────────────────────────────────────────────
 
 class _DashedRoundedBorderPainter extends CustomPainter {
   const _DashedRoundedBorderPainter({
@@ -223,40 +246,37 @@ class _DashedRoundedBorderPainter extends CustomPainter {
     );
 
     final path = Path()..addRRect(rrect);
-    final totalLength = _pathLength(path);
-    final dashArray = dashWidth + dashGap;
-    final dashCount = (totalLength / dashArray).floor();
 
     final metrics = path.computeMetrics().toList();
-    int dashIndex = 0;
 
     for (final metric in metrics) {
       double distance = 0;
+
       while (distance < metric.length) {
         final remaining = metric.length - distance;
         final currentDash = math.min(dashWidth, remaining);
+
         canvas.drawPath(
-          metric.extractPath(distance, distance + currentDash),
+          metric.extractPath(
+            distance,
+            distance + currentDash,
+          ),
           paint,
         );
+
         distance += currentDash + dashGap;
-        dashIndex++;
-        if (dashIndex >= dashCount * 2) break;
       }
     }
   }
 
-  double _pathLength(Path path) {
-    return path
-        .computeMetrics()
-        .fold(0.0, (sum, m) => sum + m.length);
-  }
-
   @override
-  bool shouldRepaint(_DashedRoundedBorderPainter old) =>
-      old.color != color ||
-      old.radius != radius ||
-      old.dashWidth != dashWidth ||
-      old.dashGap != dashGap ||
-      old.strokeWidth != strokeWidth;
+  bool shouldRepaint(
+      _DashedRoundedBorderPainter old,
+      ) {
+    return old.color != color ||
+        old.radius != radius ||
+        old.dashWidth != dashWidth ||
+        old.dashGap != dashGap ||
+        old.strokeWidth != strokeWidth;
+  }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_radius.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_styles.dart';
@@ -68,28 +67,43 @@ class _FilterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 9.h),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primary
-                : AppColors.border.withValues(alpha: 0.45),
-            width: 1,
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          padding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 9.h,
           ),
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.caption.copyWith(
-            color: isSelected ? AppColors.white : AppColors.textSecondary,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            fontSize: 13.sp,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.surface,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            border: Border.all(
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.outline.withValues(alpha: 0.45),
+              width: 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              color: isSelected
+                  ? colorScheme.onPrimary
+                  : colorScheme.onSurfaceVariant,
+              fontWeight: isSelected
+                  ? FontWeight.w700
+                  : FontWeight.w500,
+              fontSize: 13.sp,
+            ),
           ),
         ),
       ),

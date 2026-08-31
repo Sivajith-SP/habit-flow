@@ -7,6 +7,11 @@ sealed class AuthEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+/// Check whether the user is already authenticated
+final class AuthStatusChecked extends AuthEvent {
+  const AuthStatusChecked();
+}
+
 final class LoginRequested extends AuthEvent {
   final String email;
   final String password;

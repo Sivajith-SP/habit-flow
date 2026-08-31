@@ -9,4 +9,8 @@ abstract class AuthRepository {
   Future<void> logout();
 
   bool get isLoggedIn;
+
+  String? get currentUserEmail;
+
+  String? get currentUserId;
 }
