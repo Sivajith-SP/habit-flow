@@ -7,10 +7,12 @@ import 'package:habitflow/views/dashboard/widgets/habits_loading_state.dart';
 import 'package:habitflow/views/dashboard/widgets/progress_card.dart';
 import 'package:habitflow/views/dashboard/widgets/todays_habits_section.dart';
 
+import '../../app/config/service_locator.dart';
 import '../../app/router/app_routes.dart';
 import '../../app/theme/app_spacing.dart';
 import '../../controllers/auth/auth_bloc.dart';
 import '../../controllers/auth/auth_state.dart';
+import '../../repositories/auth/auth_repository.dart';
 import '../../controllers/habits/habits_bloc.dart';
 import '../../controllers/habits/habits_event.dart';
 import '../../controllers/habits/habits_state.dart';
@@ -47,9 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
         },
         child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-          ),
+          decoration: BoxDecoration(color: colorScheme.surface),
           child: SafeArea(
             bottom: false,
             child: Padding(
@@ -60,7 +60,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   SizedBox(height: 16.h),
 
                   // Fixed Top Header
-                  const DashboardHeader(),
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      final authRepository = getIt<AuthRepository>();
+                      final repositoryName =
+                          authRepository.currentUserDisplayName?.trim();
+
+                      String fullName = 'HabitFlow User';
+
+                      if (state is AuthSuccess &&
+                          state.userName.trim().isNotEmpty) {
+                        fullName = state.userName.trim();
+                      } else if (repositoryName != null &&
+                          repositoryName.isNotEmpty) {
+                        fullName = repositoryName;
+                      }
+
+                      // Extract only the first word (first name) from the full name.
+                      // e.g. "Sivajith Kumar Menon" → "Sivajith"
+                      final parts = fullName.split(RegExp(r'\s+'));
+                      final userName =
+                          (parts.isNotEmpty && parts.first.isNotEmpty)
+                              ? parts.first
+                              : 'HabitFlow User';
+
+                      return DashboardHeader(userName: userName);
+                    },
+                  ),
 
                   SizedBox(height: 18.h),
 

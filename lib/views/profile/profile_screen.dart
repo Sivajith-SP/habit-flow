@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:habitflow/controllers/auth/auth_state.dart';
 
 import '../../app/config/service_locator.dart';
 import '../../app/router/app_routes.dart';
@@ -12,10 +11,18 @@ import '../../app/theme/app_spacing.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../controllers/auth/auth_bloc.dart';
 import '../../controllers/auth/auth_event.dart';
+import '../../controllers/auth/auth_state.dart';
 import '../../repositories/auth/auth_repository.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String? _displayName;
 
   Future<bool> _showLogoutDialog(BuildContext context) async {
     return await showDialog<bool>(
@@ -76,12 +83,107 @@ class ProfileScreen extends StatelessWidget {
         false;
   }
 
+  Future<void> _showEditNameDialog(
+    BuildContext context,
+    String currentName,
+  ) async {
+    String editedName = currentName;
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        final colorScheme = Theme.of(dialogContext).colorScheme;
+
+        return AlertDialog(
+          backgroundColor: colorScheme.surface,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          title: Text(
+            'Edit Name',
+            style: AppTextStyles.heading2.copyWith(
+              color: colorScheme.onSurface,
+            ),
+          ),
+          content: TextFormField(
+            initialValue: currentName,
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+            style: AppTextStyles.body.copyWith(color: colorScheme.onSurface),
+            onChanged: (value) {
+              editedName = value;
+            },
+            onFieldSubmitted: (value) {
+              final name = value.trim();
+
+              if (name.isNotEmpty) {
+                Navigator.of(dialogContext).pop(name);
+              }
+            },
+            decoration: InputDecoration(
+              hintText: 'Enter your name',
+              hintStyle: AppTextStyles.body.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text(
+                'Cancel',
+                style: AppTextStyles.body.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            FilledButton(
+              onPressed: () {
+                final name = editedName.trim();
+
+                if (name.isEmpty) return;
+
+                Navigator.of(dialogContext).pop(name);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null && result.trim().isNotEmpty && mounted) {
+      final newName = result.trim();
+
+      // Immediate UI update
+      setState(() {
+        _displayName = newName;
+      });
+
+      // Update Firebase through Bloc
+      context.read<AuthBloc>().add(UpdateUserNameRequested(newName));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authRepository = getIt<AuthRepository>();
 
     final email = authRepository.currentUserEmail ?? 'No email available';
+
     final userId = authRepository.currentUserId ?? 'Unknown';
+
+    final repositoryName = authRepository.currentUserDisplayName?.trim();
+
+    final userName =
+        _displayName ??
+        (repositoryName != null && repositoryName.isNotEmpty
+            ? repositoryName
+            : 'HabitFlow User');
 
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -137,18 +239,43 @@ class ProfileScreen extends StatelessWidget {
 
                 SizedBox(height: AppSpacing.md),
 
-                // Temporary name
-                Text(
-                  'HabitFlow User',
-                  style: AppTextStyles.heading2.copyWith(
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.w700,
-                  ),
+                // User name
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        userName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.heading2.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(width: 8.w),
+
+                    InkWell(
+                      onTap: () {
+                        _showEditNameDialog(context, userName);
+                      },
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                      child: Padding(
+                        padding: EdgeInsets.all(6.r),
+                        child: Icon(
+                          Icons.edit_outlined,
+                          size: 18.sp,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
 
                 SizedBox(height: 4.h),
 
-                // Temporary email
                 Text(
                   email,
                   style: AppTextStyles.body.copyWith(
@@ -158,7 +285,6 @@ class ProfileScreen extends StatelessWidget {
 
                 SizedBox(height: AppSpacing.xl),
 
-                // Account information
                 _ProfileSection(
                   title: 'Account Information',
                   children: [
@@ -177,7 +303,6 @@ class ProfileScreen extends StatelessWidget {
 
                 SizedBox(height: AppSpacing.md),
 
-                // Account actions
                 _ProfileSection(
                   title: '',
                   children: [
@@ -218,15 +343,16 @@ class _ProfileSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: AppTextStyles.body.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
+        if (title.isNotEmpty) ...[
+          Text(
+            title,
+            style: AppTextStyles.body.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-
-        SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm),
+        ],
 
         Container(
           decoration: BoxDecoration(
@@ -313,6 +439,7 @@ class _ActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
     final color = isDestructive ? AppColors.error : colorScheme.primary;
 
     return Material(

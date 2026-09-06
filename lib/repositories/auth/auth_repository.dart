@@ -8,9 +8,22 @@ abstract class AuthRepository {
 
   Future<void> logout();
 
+  Future<void> updateUserName(String name);
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
+  Future<void> deleteAccount({
+    required String password,
+  });
+
   bool get isLoggedIn;
 
   String? get currentUserEmail;
 
   String? get currentUserId;
+
+  String? get currentUserDisplayName;
 }

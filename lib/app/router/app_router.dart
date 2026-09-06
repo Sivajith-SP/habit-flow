@@ -12,6 +12,9 @@ import '../../controllers/statistics/statistics_event.dart';
 import '../../views/auth/login_screen.dart';
 import '../../views/auth/register_screen.dart';
 import '../../views/profile/profile_screen.dart';
+import '../../views/security/change_password_screen.dart';
+import '../../views/security/delete_account_screen.dar.dart';
+import '../../views/security/security_screen.dart';
 import '../../views/splash/splash_screen.dart';
 import 'app_routes.dart';
 
@@ -31,30 +34,51 @@ class AppRouter {
       ),
       GoRoute(
         path: AppRoutes.login,
-        builder: (context, state) => BlocProvider(
-          create: (context) => getIt<AuthBloc>(),
+        builder: (context, state) => BlocProvider.value(
+          value: getIt<AuthBloc>(),
           child: const LoginScreen(),
         ),
       ),
       GoRoute(
         path: AppRoutes.register,
-        builder: (context, state) => BlocProvider(
-          create: (context) => getIt<AuthBloc>(),
+        builder: (context, state) => BlocProvider.value(
+          value: getIt<AuthBloc>(),
           child: const RegisterScreen(),
         ),
       ),
       GoRoute(
         path: AppRoutes.profile,
-        builder: (context, state) => BlocProvider(
-          create: (_) => getIt<AuthBloc>(),
+        builder: (context, state) => BlocProvider.value(
+          value: getIt<AuthBloc>(),
           child: const ProfileScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.security,
+        builder: (context, state) => BlocProvider.value(
+          value: getIt<AuthBloc>(),
+          child: const SecurityScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.changePassword,
+        builder: (context, state) => BlocProvider.value(
+          value: getIt<AuthBloc>(),
+          child: const ChangePasswordScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.deleteAccount,
+        builder: (context, state) => BlocProvider.value(
+          value: getIt<AuthBloc>(),
+          child: const DeleteAccountScreen(),
         ),
       ),
       GoRoute(
         path: AppRoutes.dashboard,
         builder: (context, state) => MultiBlocProvider(
           providers: [
-            BlocProvider(create: (_) => getIt<AuthBloc>()),
+            BlocProvider.value(value: getIt<AuthBloc>()),
             BlocProvider(
               create: (_) => getIt<HabitsBloc>()..add(const LoadHabits()),
             ),

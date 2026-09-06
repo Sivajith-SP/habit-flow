@@ -29,7 +29,10 @@ Future<void> setupServiceLocator() async {
   );
 
   // Controllers / Blocs
-  getIt.registerFactory<AuthBloc>(() => AuthBloc(getIt<AuthRepository>()));
+  // Singleton so all screens (Dashboard, Profile, etc.) share the same
+  // AuthBloc instance and react to state changes (e.g. UpdateUserNameRequested)
+  // without needing an app restart.
+  getIt.registerLazySingleton<AuthBloc>(() => AuthBloc(getIt<AuthRepository>()));
 
   getIt.registerFactory<HabitsBloc>(
     () => HabitsBloc(getIt<HabitRepository>(), getIt<CompletionRepository>()),

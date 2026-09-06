@@ -16,17 +16,21 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   String? get currentUserId => _firebaseAuth.currentUser?.uid;
 
-
-  // login()
   @override
-  Future<void> login({required String email, required String password}) async {
+  String? get currentUserDisplayName =>
+      _firebaseAuth.currentUser?.displayName;
+
+  @override
+  Future<void> login({
+    required String email,
+    required String password,
+  }) async {
     await _firebaseAuth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
   }
 
-  // register()
   @override
   Future<void> register({
     required String email,
@@ -38,7 +42,75 @@ class FirebaseAuthRepository implements AuthRepository {
     );
   }
 
-  // logout()
+  @override
+  Future<void> updateUserName(String name) async {
+    final user = _firebaseAuth.currentUser;
+
+    if (user == null) {
+      throw Exception('No authenticated user found');
+    }
+
+    await user.updateDisplayName(name);
+    await user.reload();
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _firebaseAuth.currentUser;
+
+    if (user == null) {
+      throw Exception('No authenticated user found');
+    }
+
+    final email = user.email;
+
+    if (email == null) {
+      throw Exception('No email found for authenticated user');
+    }
+
+    // Re-authenticate before changing password.
+    final credential = EmailAuthProvider.credential(
+      email: email,
+      password: currentPassword,
+    );
+
+    await user.reauthenticateWithCredential(credential);
+
+    // Change password.
+    await user.updatePassword(newPassword);
+  }
+
+  @override
+  Future<void> deleteAccount({
+    required String password,
+  }) async {
+    final user = _firebaseAuth.currentUser;
+
+    if (user == null) {
+      throw Exception('No authenticated user found');
+    }
+
+    final email = user.email;
+
+    if (email == null) {
+      throw Exception('No email found for authenticated user');
+    }
+
+    final credential = EmailAuthProvider.credential(
+      email: email,
+      password: password,
+    );
+
+    // Firebase requires recent authentication
+    await user.reauthenticateWithCredential(credential);
+
+    // Delete Firebase account
+    await user.delete();
+  }
+
   @override
   Future<void> logout() async {
     await _firebaseAuth.signOut();
