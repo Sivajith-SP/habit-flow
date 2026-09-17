@@ -6,4 +6,11 @@ class AppRoutes {
   static const String dashboard = '/dashboard';
   static const String login = '/login';
   static const String register = '/register';
+  static const String profile = '/profile';
+  static const String security = '/security';
+  static const changePassword = '/change-password';
+  static const deleteAccount = '/delete-account';
+  static const notifications = '/notifications';
+  static const about = '/about';
+  static const privacy = '/privacy';
 }

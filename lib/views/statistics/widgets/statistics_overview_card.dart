@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_radius.dart';
 import '../../../app/theme/app_shadows.dart';
 import '../../../app/theme/app_spacing.dart';
@@ -21,6 +20,9 @@ class StatisticsOverviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final completionPercentage = totalHabits == 0
         ? 0
         : ((completedToday / totalHabits) * 100).round();
@@ -28,14 +30,23 @@ class StatisticsOverviewCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: AppShadows.soft,
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.35),
+        ),
+        boxShadow: isDark ? null : AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Overview', style: AppTextStyles.title),
+          Text(
+            'Overview',
+            style: AppTextStyles.title.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
 
           SizedBox(height: AppSpacing.lg),
 
@@ -69,19 +80,24 @@ class _StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Text(
           value,
           style: AppTextStyles.heading2.copyWith(
-            color: AppColors.primary,
+            color: colorScheme.primary,
             fontSize: 24.sp,
+            fontWeight: FontWeight.w700,
           ),
         ),
         SizedBox(height: AppSpacing.xs),
         Text(
           label,
-          style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
+          style: AppTextStyles.caption.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
           textAlign: TextAlign.center,
         ),
       ],

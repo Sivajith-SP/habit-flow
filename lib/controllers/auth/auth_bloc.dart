@@ -11,10 +11,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(this._authRepository) : super(AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<RegisterRequested>(_onRegisterRequested);
+    on<UpdateUserNameRequested>(_onUpdateUserNameRequested);
+    on<ChangePasswordRequested>(_onChangePasswordRequested);
+    on<DeleteAccountRequested>(_onDeleteAccountRequested);
     on<LogoutRequested>(_onLogoutRequested);
   }
 
-  //event handler
   Future<void> _onLoginRequested(
     LoginRequested event,
     Emitter<AuthState> emit,
@@ -24,7 +26,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await _authRepository.login(email: event.email, password: event.password);
 
-      emit(AuthSuccess());
+      final userName =
+          _authRepository.currentUserDisplayName?.trim().isNotEmpty == true
+          ? _authRepository.currentUserDisplayName!
+          : 'HabitFlow User';
+
+      emit(AuthSuccess(userName: userName));
     } catch (e) {
       emit(AuthFailure(FirebaseAuthExceptionHandler.getMessage(e)));
     }
@@ -42,9 +49,73 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         password: event.password,
       );
 
-      emit(AuthSuccess());
+      final userName =
+          _authRepository.currentUserDisplayName?.trim().isNotEmpty == true
+          ? _authRepository.currentUserDisplayName!
+          : 'HabitFlow User';
+
+      emit(AuthSuccess(userName: userName));
     } catch (e) {
       emit(AuthFailure(FirebaseAuthExceptionHandler.getMessage(e)));
+    }
+  }
+
+  Future<void> _onUpdateUserNameRequested(
+    UpdateUserNameRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      await _authRepository.updateUserName(event.name);
+
+      emit(AuthSuccess(userName: event.name));
+    } catch (e) {
+      emit(AuthFailure(FirebaseAuthExceptionHandler.getMessage(e)));
+    }
+  }
+
+  Future<void> _onChangePasswordRequested(
+    ChangePasswordRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      await _authRepository.changePassword(
+        currentPassword: event.currentPassword,
+        newPassword: event.newPassword,
+      );
+
+      final userName =
+          _authRepository.currentUserDisplayName?.trim().isNotEmpty == true
+          ? _authRepository.currentUserDisplayName!
+          : 'HabitFlow User';
+
+      emit(AuthSuccess(userName: userName));
+    } catch (e) {
+      emit(AuthFailure(FirebaseAuthExceptionHandler.getMessage(e)));
+    }
+  }
+
+  Future<void> _onDeleteAccountRequested(
+      DeleteAccountRequested event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(AuthLoading());
+
+    try {
+      await _authRepository.deleteAccount(
+        password: event.password,
+      );
+
+      emit(AuthInitial());
+    } catch (e) {
+      emit(
+        AuthFailure(
+          FirebaseAuthExceptionHandler.getMessage(e),
+        ),
+      );
     }
   }
 
@@ -59,7 +130,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthInitial());
     } catch (e) {
-      emit(AuthFailure(e.toString()));
+      emit(AuthFailure(FirebaseAuthExceptionHandler.getMessage(e)));
     }
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_radius.dart';
 import '../../../app/theme/app_shadows.dart';
 import '../../../app/theme/app_text_styles.dart';
@@ -27,6 +26,8 @@ class HabitCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool done = habit.isCompletedToday;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return InkWell(
       borderRadius: BorderRadius.circular(AppRadius.xl),
@@ -37,35 +38,35 @@ class HabitCard extends StatelessWidget {
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
           color: done
-              ? AppColors.primary.withValues(alpha: 0.04)
-              : AppColors.card,
+              ? colorScheme.primary.withValues(alpha: isDark ? 0.12 : 0.05)
+              : colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadius.xl),
           border: Border.all(
             color: isSelected
-                ? AppColors.primary
+                ? colorScheme.primary
                 : done
-                    ? AppColors.primary.withValues(alpha: 0.2)
-                    : AppColors.border.withValues(alpha: 0.35),
+                ? colorScheme.primary.withValues(alpha: 0.25)
+                : colorScheme.outlineVariant,
             width: isSelected ? 2 : 1,
           ),
-          boxShadow: done
+          boxShadow: done || isDark
               ? null
               : isSelected
-                  ? [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.15),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : AppShadows.soft,
+              ? [
+                  BoxShadow(
+                    color: colorScheme.primary.withValues(alpha: 0.15),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : AppShadows.soft,
         ),
         clipBehavior: Clip.hardEdge,
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Left gradient accent bar
+              // Left accent bar
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
@@ -76,18 +77,14 @@ class HabitCard extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: done
                         ? [
-                            AppColors.primary.withValues(alpha: 0.35),
-                            AppColors.primaryLight,
+                            colorScheme.primary.withValues(alpha: 0.4),
+                            colorScheme.primary.withValues(alpha: 0.18),
                           ]
-                        : [
-                            AppColors.primary,
-                            AppColors.primaryDark,
-                          ],
+                        : [colorScheme.primary, colorScheme.primaryContainer],
                   ),
                 ),
               ),
 
-              // Content area
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.symmetric(
@@ -97,15 +94,15 @@ class HabitCard extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Icon container
+                      // Habit icon
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         width: 46.r,
                         height: 46.r,
                         decoration: BoxDecoration(
                           color: done
-                              ? AppColors.primary.withValues(alpha: 0.10)
-                              : AppColors.primaryLight.withValues(alpha: 0.55),
+                              ? colorScheme.primary.withValues(alpha: 0.12)
+                              : colorScheme.primaryContainer,
                           borderRadius: BorderRadius.circular(14.r),
                         ),
                         alignment: Alignment.center,
@@ -115,8 +112,8 @@ class HabitCard extends StatelessWidget {
                             fontFamily: 'MaterialIcons',
                           ),
                           color: done
-                              ? AppColors.primary.withValues(alpha: 0.55)
-                              : AppColors.primary,
+                              ? colorScheme.primary.withValues(alpha: 0.6)
+                              : colorScheme.primary,
                           size: 23.sp,
                         ),
                       ),
@@ -137,16 +134,18 @@ class HabitCard extends StatelessWidget {
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15.sp,
                                 color: done
-                                    ? AppColors.textMuted
-                                    : AppColors.textPrimary,
+                                    ? colorScheme.onSurfaceVariant
+                                    : colorScheme.onSurface,
                                 decoration: done
                                     ? TextDecoration.lineThrough
                                     : TextDecoration.none,
-                                decorationColor: AppColors.textMuted
+                                decorationColor: colorScheme.onSurfaceVariant
                                     .withValues(alpha: 0.6),
                               ),
                             ),
+
                             SizedBox(height: 3.h),
+
                             Text(
                               habit.habit.description.isEmpty
                                   ? _frequencyLabel()
@@ -155,9 +154,10 @@ class HabitCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: AppTextStyles.caption.copyWith(
                                 color: done
-                                    ? AppColors.textMuted
-                                        .withValues(alpha: 0.6)
-                                    : AppColors.textMuted,
+                                    ? colorScheme.onSurfaceVariant.withValues(
+                                        alpha: 0.6,
+                                      )
+                                    : colorScheme.onSurfaceVariant,
                                 fontSize: 12.sp,
                               ),
                             ),
@@ -167,7 +167,7 @@ class HabitCard extends StatelessWidget {
 
                       SizedBox(width: 10.w),
 
-                      // Right: edit button / completed badge / frequency chip
+                      // Right side
                       if (isSelected)
                         GestureDetector(
                           onTap: onEdit,
@@ -177,13 +177,15 @@ class HabitCard extends StatelessWidget {
                               vertical: 7.h,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.pill),
+                              color: colorScheme.primary,
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.pill,
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.3),
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 3),
                                 ),
@@ -194,14 +196,14 @@ class HabitCard extends StatelessWidget {
                               children: [
                                 Icon(
                                   Icons.edit_rounded,
-                                  color: Colors.white,
+                                  color: colorScheme.onPrimary,
                                   size: 13.sp,
                                 ),
                                 SizedBox(width: 4.w),
                                 Text(
                                   "Edit",
                                   style: AppTextStyles.caption.copyWith(
-                                    color: Colors.white,
+                                    color: colorScheme.onPrimary,
                                     fontWeight: FontWeight.w700,
                                     fontSize: 12.sp,
                                   ),
@@ -216,12 +218,12 @@ class HabitCard extends StatelessWidget {
                           height: 30.r,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppColors.primary.withValues(alpha: 0.12),
+                            color: colorScheme.primary.withValues(alpha: 0.12),
                           ),
                           alignment: Alignment.center,
                           child: Icon(
                             Icons.check_rounded,
-                            color: AppColors.primary,
+                            color: colorScheme.primary,
                             size: 17.sp,
                           ),
                         )
@@ -232,15 +234,13 @@ class HabitCard extends StatelessWidget {
                             vertical: 5.h,
                           ),
                           decoration: BoxDecoration(
-                            color:
-                                AppColors.primaryLight.withValues(alpha: 0.45),
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.pill),
+                            color: colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(AppRadius.pill),
                           ),
                           child: Text(
                             _frequencyLabel(),
                             style: AppTextStyles.caption.copyWith(
-                              color: AppColors.primary,
+                              color: colorScheme.primary,
                               fontWeight: FontWeight.w600,
                               fontSize: 11.sp,
                             ),
@@ -263,11 +263,15 @@ class HabitCard extends StatelessWidget {
     switch (habit.habit.frequency) {
       case HabitFrequency.daily:
         return "Daily";
+
       case HabitFrequency.weekly:
         return "Weekly";
+
       case HabitFrequency.custom:
         final days = List<int>.from(habit.habit.targetDays)..sort();
+
         if (days.isEmpty) return "Custom";
+
         return days.map((d) => dayLabels[d]).join(", ");
     }
   }

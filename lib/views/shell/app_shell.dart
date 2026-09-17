@@ -1,7 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../controllers/habits/habits_bloc.dart';
+import '../../controllers/habits/habits_state.dart';
+import '../../controllers/statistics/statistics_bloc.dart';
+import '../../controllers/statistics/statistics_event.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../dashboard/widgets/add_habit_bottom_sheet.dart';
 import '../habits/habit_screen.dart';
@@ -46,22 +49,28 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      extendBody: true,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+    return BlocListener<HabitsBloc, HabitsState>(
+      listenWhen: (previous, current) => current is HabitsLoaded,
+      listener: (context, state) {
+        context.read<StatisticsBloc>().add(const LoadStatistics());
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        extendBody: true,
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _screens,
+        ),
 
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        onAddTap: _openAddHabitSheet,
+        bottomNavigationBar: BottomNavBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          onAddTap: _openAddHabitSheet,
+        ),
       ),
     );
   }

@@ -38,159 +38,163 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final systemBottom = MediaQuery.of(context).viewPadding.bottom;
     final listBottomPad = systemBottom + 100.h;
 
-    return SafeArea(
-      bottom: false,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 16.h),
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colorScheme.surface),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16.h),
 
-            // ── Header ──────────────────────────────────────────
-            _HabitsHeader(selectedFilter: _selectedFilter),
+              // ── Header ──────────────────────────────────────────
+              _HabitsHeader(selectedFilter: _selectedFilter),
 
-            SizedBox(height: 20.h),
+              SizedBox(height: 20.h),
 
-            // ── Search Bar ──────────────────────────────────────
-            HabitSearchBar(
-              controller: _searchController,
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value.trim().toLowerCase();
-                });
-              },
-            ),
+              // ── Search Bar ──────────────────────────────────────
+              HabitSearchBar(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.trim().toLowerCase();
+                  });
+                },
+              ),
 
-            SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md),
 
-            // ── Filter Chips ────────────────────────────────────
-            HabitFilterChips(
-              selected: _selectedFilter,
-              onSelected: (filter) {
-                setState(() {
-                  _selectedFilter = filter;
-                });
-              },
-            ),
+              // ── Filter Chips ────────────────────────────────────
+              HabitFilterChips(
+                selected: _selectedFilter,
+                onSelected: (filter) {
+                  setState(() {
+                    _selectedFilter = filter;
+                  });
+                },
+              ),
 
-            SizedBox(height: AppSpacing.lg),
+              SizedBox(height: AppSpacing.lg),
 
-            // ── Habit List ──────────────────────────────────────
-            Expanded(
-              child: BlocBuilder<HabitsBloc, HabitsState>(
-                builder: (context, state) {
-                  if (state is HabitsLoading) {
-                    return const HabitsLoadingState();
-                  }
-
-                  if (state is HabitsError) {
-                    return _ErrorState(message: state.message);
-                  }
-
-                  if (state is HabitsLoaded) {
-                    final filteredHabits = state.habits.where((habit) {
-                      final model = habit.habit;
-
-                      final matchesFilter = switch (_selectedFilter) {
-                        HabitFilter.all => !model.isArchived,
-                        HabitFilter.daily =>
-                          !model.isArchived &&
-                              model.frequency == HabitFrequency.daily,
-                        HabitFilter.weekly =>
-                          !model.isArchived &&
-                              model.frequency == HabitFrequency.weekly,
-                        HabitFilter.custom =>
-                          !model.isArchived &&
-                              model.frequency == HabitFrequency.custom,
-                        HabitFilter.archived => model.isArchived,
-                      };
-
-                      if (!matchesFilter) return false;
-
-                      if (_searchQuery.isEmpty) return true;
-
-                      return model.title
-                              .toLowerCase()
-                              .contains(_searchQuery) ||
-                          model.description
-                              .toLowerCase()
-                              .contains(_searchQuery);
-                    }).toList();
-
-                    if (filteredHabits.isEmpty) {
-                      return _EmptyFilterState(filter: _selectedFilter);
+              // ── Habit List ──────────────────────────────────────
+              Expanded(
+                child: BlocBuilder<HabitsBloc, HabitsState>(
+                  builder: (context, state) {
+                    if (state is HabitsLoading) {
+                      return const HabitsLoadingState();
                     }
 
-                    if (_selectedFilter == HabitFilter.all) {
-                      return ListView(
+                    if (state is HabitsError) {
+                      return _ErrorState(message: state.message);
+                    }
+
+                    if (state is HabitsLoaded) {
+                      final filteredHabits = state.habits.where((habit) {
+                        final model = habit.habit;
+
+                        final matchesFilter = switch (_selectedFilter) {
+                          HabitFilter.all => !model.isArchived,
+                          HabitFilter.daily =>
+                            !model.isArchived &&
+                                model.frequency == HabitFrequency.daily,
+                          HabitFilter.weekly =>
+                            !model.isArchived &&
+                                model.frequency == HabitFrequency.weekly,
+                          HabitFilter.custom =>
+                            !model.isArchived &&
+                                model.frequency == HabitFrequency.custom,
+                          HabitFilter.archived => model.isArchived,
+                        };
+
+                        if (!matchesFilter) return false;
+
+                        if (_searchQuery.isEmpty) return true;
+
+                        return model.title.toLowerCase().contains(
+                              _searchQuery,
+                            ) ||
+                            model.description.toLowerCase().contains(
+                              _searchQuery,
+                            );
+                      }).toList();
+
+                      if (filteredHabits.isEmpty) {
+                        return _EmptyFilterState(filter: _selectedFilter);
+                      }
+
+                      if (_selectedFilter == HabitFilter.all) {
+                        return ListView(
+                          physics: const BouncingScrollPhysics(),
+                          padding: EdgeInsets.only(bottom: listBottomPad),
+                          children: [
+                            _buildSection(
+                              context: context,
+                              title: 'Daily',
+                              icon: Icons.repeat_rounded,
+                              habits: filteredHabits
+                                  .where(
+                                    (h) =>
+                                        h.habit.frequency ==
+                                        HabitFrequency.daily,
+                                  )
+                                  .toList(),
+                              listBottomPad: listBottomPad,
+                            ),
+                            _buildSection(
+                              context: context,
+                              title: 'Weekly',
+                              icon: Icons.date_range_rounded,
+                              habits: filteredHabits
+                                  .where(
+                                    (h) =>
+                                        h.habit.frequency ==
+                                        HabitFrequency.weekly,
+                                  )
+                                  .toList(),
+                              listBottomPad: listBottomPad,
+                            ),
+                            _buildSection(
+                              context: context,
+                              title: 'Custom',
+                              icon: Icons.tune_rounded,
+                              habits: filteredHabits
+                                  .where(
+                                    (h) =>
+                                        h.habit.frequency ==
+                                        HabitFrequency.custom,
+                                  )
+                                  .toList(),
+                              listBottomPad: listBottomPad,
+                            ),
+                          ],
+                        );
+                      }
+
+                      return ListView.separated(
                         physics: const BouncingScrollPhysics(),
                         padding: EdgeInsets.only(bottom: listBottomPad),
-                        children: [
-                          _buildSection(
-                            context: context,
-                            title: 'Daily',
-                            icon: Icons.repeat_rounded,
-                            habits: filteredHabits
-                                .where(
-                                  (h) =>
-                                      h.habit.frequency ==
-                                      HabitFrequency.daily,
-                                )
-                                .toList(),
-                            listBottomPad: listBottomPad,
-                          ),
-                          _buildSection(
-                            context: context,
-                            title: 'Weekly',
-                            icon: Icons.date_range_rounded,
-                            habits: filteredHabits
-                                .where(
-                                  (h) =>
-                                      h.habit.frequency ==
-                                      HabitFrequency.weekly,
-                                )
-                                .toList(),
-                            listBottomPad: listBottomPad,
-                          ),
-                          _buildSection(
-                            context: context,
-                            title: 'Custom',
-                            icon: Icons.tune_rounded,
-                            habits: filteredHabits
-                                .where(
-                                  (h) =>
-                                      h.habit.frequency ==
-                                      HabitFrequency.custom,
-                                )
-                                .toList(),
-                            listBottomPad: listBottomPad,
-                          ),
-                        ],
+                        itemCount: filteredHabits.length,
+                        separatorBuilder: (_, i) =>
+                            SizedBox(height: AppSpacing.md),
+                        itemBuilder: (context, index) {
+                          final habit = filteredHabits[index];
+                          return _buildCard(context, habit);
+                        },
                       );
                     }
 
-                    return ListView.separated(
-                      physics: const BouncingScrollPhysics(),
-                      padding: EdgeInsets.only(bottom: listBottomPad),
-                      itemCount: filteredHabits.length,
-                      separatorBuilder: (_, i) =>
-                          SizedBox(height: AppSpacing.md),
-                      itemBuilder: (context, index) {
-                        final habit = filteredHabits[index];
-                        return _buildCard(context, habit);
-                      },
-                    );
-                  }
-
-                  return const SizedBox.shrink();
-                },
+                    return const SizedBox.shrink();
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -205,6 +209,8 @@ class _HabitsScreenState extends State<HabitsScreen> {
   }) {
     if (habits.isEmpty) return const SizedBox.shrink();
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: EdgeInsets.only(bottom: AppSpacing.xl),
       child: Column(
@@ -217,10 +223,10 @@ class _HabitsScreenState extends State<HabitsScreen> {
                 width: 28.r,
                 height: 28.r,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight.withValues(alpha: 0.55),
+                  color: colorScheme.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
-                child: Icon(icon, color: AppColors.primary, size: 16.sp),
+                child: Icon(icon, color: colorScheme.primary, size: 16.sp),
               ),
               SizedBox(width: 8.w),
               Text(
@@ -228,20 +234,20 @@ class _HabitsScreenState extends State<HabitsScreen> {
                 style: AppTextStyles.body.copyWith(
                   fontWeight: FontWeight.w700,
                   fontSize: 15.sp,
-                  color: AppColors.textPrimary,
+                  color: colorScheme.onSurface,
                 ),
               ),
               SizedBox(width: AppSpacing.sm),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight.withValues(alpha: 0.55),
+                  color: colorScheme.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
                 child: Text(
                   '${habits.length}',
                   style: AppTextStyles.caption.copyWith(
-                    color: AppColors.primary,
+                    color: colorScheme.primary,
                     fontWeight: FontWeight.w700,
                     fontSize: 11.sp,
                   ),
@@ -300,99 +306,102 @@ class _HabitsScreenState extends State<HabitsScreen> {
   ) async {
     return showDialog<bool>(
       context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-        ),
-        backgroundColor: AppColors.card,
-        surfaceTintColor: Colors.transparent,
-        child: Padding(
-          padding: EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: EdgeInsets.all(14.r),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.10),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.delete_forever_rounded,
-                  color: AppColors.error,
-                  size: 28.sp,
-                ),
-              ),
-              SizedBox(height: AppSpacing.md),
-              Text(
-                'Delete Habit?',
-                style: AppTextStyles.heading2.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18.sp,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              SizedBox(height: AppSpacing.xs),
-              Text(
-                'Are you sure you want to delete "$habitTitle"?\nThis action cannot be undone.',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
-                  fontSize: 13.sp,
-                ),
-              ),
-              SizedBox(height: AppSpacing.lg),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(
-                          color: AppColors.border,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
-                        ),
-                        padding: EdgeInsets.symmetric(vertical: 12.h),
-                      ),
-                      onPressed: () => Navigator.pop(context, false),
-                      child: Text(
-                        'Cancel',
-                        style: AppTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14.sp,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.error,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
-                        ),
-                        padding: EdgeInsets.symmetric(vertical: 12.h),
-                      ),
-                      onPressed: () => Navigator.pop(context, true),
-                      child: Text(
-                        'Delete',
-                        style: AppTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14.sp,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+      builder: (dialogContext) {
+        final dialogColorScheme = Theme.of(dialogContext).colorScheme;
+
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.xl),
           ),
-        ),
-      ),
+          backgroundColor: dialogColorScheme.surface,
+          surfaceTintColor: Colors.transparent,
+          child: Padding(
+            padding: EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(14.r),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.10),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.delete_forever_rounded,
+                    color: AppColors.error,
+                    size: 28.sp,
+                  ),
+                ),
+                SizedBox(height: AppSpacing.md),
+                Text(
+                  'Delete Habit?',
+                  style: AppTextStyles.heading2.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18.sp,
+                    color: dialogColorScheme.onSurface,
+                  ),
+                ),
+                SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Are you sure you want to delete "$habitTitle"?\nThis action cannot be undone.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: dialogColorScheme.onSurfaceVariant,
+                    fontSize: 13.sp,
+                  ),
+                ),
+                SizedBox(height: AppSpacing.lg),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: dialogColorScheme.outline),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.pill),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 12.h),
+                        ),
+                        onPressed: () => Navigator.pop(dialogContext, false),
+                        child: Text(
+                          'Cancel',
+                          style: AppTextStyles.body.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.sp,
+                            color: dialogColorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.error,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.pill),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 12.h),
+                        ),
+                        onPressed: () => Navigator.pop(dialogContext, true),
+                        child: Text(
+                          'Delete',
+                          style: AppTextStyles.body.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.sp,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -408,6 +417,8 @@ class _HabitsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -416,7 +427,7 @@ class _HabitsHeader extends StatelessWidget {
           style: AppTextStyles.heading1.copyWith(
             fontSize: 26.sp,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: colorScheme.onSurface,
             height: 1.15,
           ),
         ),
@@ -425,7 +436,7 @@ class _HabitsHeader extends StatelessWidget {
           'Manage & track all your habits',
           style: AppTextStyles.body.copyWith(
             fontSize: 14.sp,
-            color: AppColors.textSecondary,
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -444,6 +455,8 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Padding(
         padding: EdgeInsets.all(AppSpacing.lg),
@@ -469,6 +482,7 @@ class _ErrorState extends StatelessWidget {
               style: AppTextStyles.heading2.copyWith(
                 fontWeight: FontWeight.w700,
                 fontSize: 18.sp,
+                color: colorScheme.onSurface,
               ),
               textAlign: TextAlign.center,
             ),
@@ -476,7 +490,7 @@ class _ErrorState extends StatelessWidget {
             Text(
               message,
               style: AppTextStyles.body.copyWith(
-                color: AppColors.textSecondary,
+                color: colorScheme.onSurfaceVariant,
                 fontSize: 14.sp,
               ),
               textAlign: TextAlign.center,
@@ -498,11 +512,13 @@ class _EmptyFilterState extends StatelessWidget {
   const _EmptyFilterState({required this.filter});
 
   String get _message => switch (filter) {
-    HabitFilter.all => "You haven't created any habits yet.\nTap + to get started.",
+    HabitFilter.all =>
+      "You haven't created any habits yet.\nTap + to get started.",
     HabitFilter.daily => "No daily habits found.",
     HabitFilter.weekly => "No weekly habits found.",
     HabitFilter.custom => "No custom habits found.",
-    HabitFilter.archived => "No archived habits yet.\nArchived habits will appear here.",
+    HabitFilter.archived =>
+      "No archived habits yet.\nArchived habits will appear here.",
   };
 
   IconData get _icon => switch (filter) {
@@ -512,6 +528,8 @@ class _EmptyFilterState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -527,13 +545,13 @@ class _EmptyFilterState extends StatelessWidget {
                     Container(
                       width: 72.r,
                       height: 72.r,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primaryLight,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         _icon,
-                        color: AppColors.primary,
+                        color: colorScheme.primary,
                         size: 36.sp,
                       ),
                     ),
@@ -541,7 +559,7 @@ class _EmptyFilterState extends StatelessWidget {
                     Text(
                       _message,
                       style: AppTextStyles.body.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 14.sp,
                       ),
                       textAlign: TextAlign.center,
