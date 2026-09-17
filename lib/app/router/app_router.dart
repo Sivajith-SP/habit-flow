@@ -7,10 +7,15 @@ import 'package:habitflow/views/shell/app_shell.dart';
 
 import '../../controllers/habits/habits_bloc.dart';
 import '../../controllers/habits/habits_event.dart';
+import '../../controllers/notifications/notifications_bloc.dart';
+import '../../controllers/notifications/notifications_event.dart';
 import '../../controllers/statistics/statistics_bloc.dart';
 import '../../controllers/statistics/statistics_event.dart';
+import '../../views/about/about_screen.dart';
 import '../../views/auth/login_screen.dart';
 import '../../views/auth/register_screen.dart';
+import '../../views/notifications/notifications_screen.dart';
+import '../../views/privacy/privacy_screen.dart';
 import '../../views/profile/profile_screen.dart';
 import '../../views/security/change_password_screen.dart';
 import '../../views/security/delete_account_screen.dar.dart';
@@ -75,6 +80,22 @@ class AppRouter {
         ),
       ),
       GoRoute(
+        path: AppRoutes.notifications,
+        builder: (context, state) => BlocProvider(
+          create: (_) =>
+              getIt<NotificationsBloc>()..add(const LoadNotificationSettings()),
+          child: const NotificationsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.about,
+        builder: (context, state) => const AboutScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.privacy,
+        builder: (context, state) => const PrivacyScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.dashboard,
         builder: (context, state) => MultiBlocProvider(
           providers: [
@@ -83,7 +104,8 @@ class AppRouter {
               create: (_) => getIt<HabitsBloc>()..add(const LoadHabits()),
             ),
             BlocProvider(
-              create: (_) => getIt<StatisticsBloc>()..add(const LoadStatistics()),
+              create: (_) =>
+                  getIt<StatisticsBloc>()..add(const LoadStatistics()),
             ),
           ],
           child: const AppShell(),

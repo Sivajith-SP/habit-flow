@@ -10,4 +10,7 @@ class AppRoutes {
   static const String security = '/security';
   static const changePassword = '/change-password';
   static const deleteAccount = '/delete-account';
+  static const notifications = '/notifications';
+  static const about = '/about';
+  static const privacy = '/privacy';
 }
