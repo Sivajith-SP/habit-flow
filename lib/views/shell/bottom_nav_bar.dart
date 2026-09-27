@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../app/theme/app_colors.dart';
-import '../../app/theme/app_durations.dart';
-import '../../app/theme/app_radius.dart';
-import '../../app/theme/app_spacing.dart';
+import '../../app/theme/app_flow_tokens.dart';
 
-class BottomNavBar extends StatefulWidget {
+class BottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
   final VoidCallback onAddTap;
@@ -19,141 +16,135 @@ class BottomNavBar extends StatefulWidget {
   });
 
   @override
-  State<BottomNavBar> createState() => _BottomNavBarState();
-}
-
-class _BottomNavBarState extends State<BottomNavBar> {
-  bool _isFabPressed = false;
-
-  void _handleFabTap() async {
-    setState(() {
-      _isFabPressed = true;
-    });
-
-    await Future.delayed(const Duration(milliseconds: 120));
-
-    if (mounted) {
-      setState(() {
-        _isFabPressed = false;
-      });
-      widget.onAddTap();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final items = [
-      (Icons.grid_view_outlined, Icons.grid_view_rounded),
-      (Icons.task_alt_outlined, Icons.task_alt_rounded),
-      (Icons.insights_outlined, Icons.insights_rounded),
-      (Icons.settings_outlined, Icons.settings_rounded),
-    ];
-
-    final bool showAddButton = widget.currentIndex == 0;
-    final double systemBottomInset = MediaQuery.of(context).viewPadding.bottom;
+    final tokens = context.flowTokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final systemBottom = MediaQuery.of(context).viewPadding.bottom;
 
     return Padding(
       padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        bottom: systemBottomInset > 0 ? systemBottomInset + 8.h : 20.h,
+        left: 16.w,
+        right: 16.w,
+        bottom: 24.h + (systemBottom > 0 ? systemBottom : 0),
       ),
-      child: Row(
-        children: [
-          // Nav bar pill container
-          Expanded(
-            child: Container(
-              height: 64.h,
-              decoration: BoxDecoration(
-                color: AppColors.primaryDark,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primaryDark.withValues(alpha: 0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: List.generate(items.length, (index) {
-                  final isSelected = widget.currentIndex == index;
-                  final item = items[index];
-
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: () => widget.onTap(index),
-                      behavior: HitTestBehavior.opaque,
-                      child: Center(
-                        child: AnimatedScale(
-                          duration: AppDurations.fast,
-                          scale: isSelected ? 1.15 : 1.0,
-                          child: Icon(
-                            isSelected ? item.$2 : item.$1,
-                            color: isSelected
-                                ? AppColors.white
-                                : AppColors.white.withValues(alpha: 0.35),
-                            size: 22.sp,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
+      child: Container(
+        height: 74.h,
+        decoration: BoxDecoration(
+          color: tokens.raised,
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: isDark ? null : tokens.cardShadow,
+          border: isDark ? Border.all(color: tokens.border, width: 1) : null,
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 10.w),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            // 0: Home
+            _buildNavItem(
+              context: context,
+              index: 0,
+              icon: Icons.home_rounded,
+              label: 'Home',
+              tokens: tokens,
             ),
-          ),
 
-          // Animated Smooth FAB Transition with Tap Micro-Bounce
-          AnimatedContainer(
-            duration: AppDurations.normal,
-            curve: Curves.easeInOutCubic,
-            margin: EdgeInsets.only(left: showAddButton ? AppSpacing.sm : 0),
-            width: showAddButton ? 64.h : 0,
-            height: 64.h,
-            child: AnimatedOpacity(
-              duration: AppDurations.fast,
-              curve: Curves.easeInOut,
-              opacity: showAddButton ? 1.0 : 0.0,
-              child: AnimatedScale(
-                duration: AppDurations.xFast,
-                curve: Curves.easeOutBack,
-                scale: showAddButton
-                    ? (_isFabPressed ? 0.88 : 1.0)
-                    : 0.0,
-                child: GestureDetector(
-                  onTap: showAddButton ? _handleFabTap : null,
-                  child: Container(
-                    width: 64.h,
-                    height: 64.h,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primaryDark,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryDark.withValues(alpha: 0.35),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: AnimatedRotation(
-                        duration: const Duration(milliseconds: 250),
-                        turns: _isFabPressed ? 0.125 : 0.0,
-                        child: Icon(
-                          Icons.add_rounded,
-                          color: AppColors.white,
-                          size: 26.sp,
-                        ),
-                      ),
+            // 1: Habits
+            _buildNavItem(
+              context: context,
+              index: 1,
+              icon: Icons.check_circle_outline_rounded,
+              label: 'Habits',
+              tokens: tokens,
+            ),
+
+            // Center: Add Button (58px circle)
+            Semantics(
+              button: true,
+              label: 'Add habit',
+              child: InkWell(
+                onTap: onAddTap,
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  width: 58.r,
+                  height: 58.r,
+                  decoration: BoxDecoration(
+                    color: tokens.centerPlusBg,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.add_rounded,
+                      color: tokens.centerPlusIcon,
+                      size: 28.sp,
                     ),
                   ),
                 ),
               ),
             ),
+
+            // 2: Stats
+            _buildNavItem(
+              context: context,
+              index: 2,
+              icon: Icons.show_chart_rounded,
+              label: 'Statistics',
+              tokens: tokens,
+            ),
+
+            // 3: Settings
+            _buildNavItem(
+              context: context,
+              index: 3,
+              icon: Icons.tune_rounded,
+              label: 'Settings',
+              tokens: tokens,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required BuildContext context,
+    required int index,
+    required IconData icon,
+    required String label,
+    required HabitFlowTokens tokens,
+  }) {
+    final isSelected = currentIndex == index;
+
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      child: InkResponse(
+        onTap: () => onTap(index),
+        radius: 28.r,
+        splashColor: tokens.accent.withValues(alpha: 0.15),
+        highlightShape: BoxShape.circle,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minWidth: 44.r, minHeight: 44.r),
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              width: isSelected ? 48.r : 44.r,
+              height: isSelected ? 48.r : 44.r,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? tokens.accent : Colors.transparent,
+              ),
+              child: Center(
+                child: Icon(
+                  icon,
+                  size: 24.sp,
+                  color: isSelected ? tokens.onAccent : tokens.mutedText,
+                ),
+              ),
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

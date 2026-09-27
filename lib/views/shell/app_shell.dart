@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../app/theme/app_flow_tokens.dart';
 import '../../controllers/habits/habits_bloc.dart';
 import '../../controllers/habits/habits_state.dart';
 import '../../controllers/statistics/statistics_bloc.dart';
@@ -55,7 +56,7 @@ class _AppShellState extends State<AppShell> {
         context.read<StatisticsBloc>().add(const LoadStatistics());
       },
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: context.flowTokens.background,
         extendBody: true,
         body: IndexedStack(
           index: _currentIndex,

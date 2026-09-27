@@ -96,4 +96,52 @@ class HabitModel extends Equatable {
     createdAt,
     updatedAt,
   ];
+
+  /// Checks if this habit is scheduled to be performed on [date].
+  bool isScheduledOn(DateTime date) {
+    if (isArchived) return false;
+    switch (frequency) {
+      case HabitFrequency.daily:
+        return true;
+      case HabitFrequency.weekly:
+      case HabitFrequency.custom:
+        if (targetDays.isNotEmpty) {
+          return targetDays.contains(date.weekday) ||
+              (targetDays.contains(0) && targetDays.contains(date.weekday - 1));
+        }
+        return createdAt.weekday == date.weekday;
+    }
+  }
+
+  /// Checks if this habit is scheduled for the given [weekday] (1 = Mon .. 7 = Sun).
+  bool isScheduledForWeekday(int weekday) {
+    if (isArchived) return false;
+    switch (frequency) {
+      case HabitFrequency.daily:
+        return true;
+      case HabitFrequency.weekly:
+      case HabitFrequency.custom:
+        if (targetDays.isNotEmpty) {
+          return targetDays.contains(weekday) ||
+              (targetDays.contains(0) && targetDays.contains(weekday - 1));
+        }
+        return createdAt.weekday == weekday;
+    }
+  }
+
+  /// Returns the user-facing schedule display string.
+  /// For Custom frequency with all 7 days selected, displays "Every day"
+  /// while the underlying frequency remains Custom.
+  String get scheduleCaption {
+    switch (frequency) {
+      case HabitFrequency.daily:
+        return 'Every day';
+      case HabitFrequency.weekly:
+        return 'Once a week';
+      case HabitFrequency.custom:
+        return targetDays.length == 7
+            ? 'Every day'
+            : '${targetDays.length} selected';
+    }
+  }
 }

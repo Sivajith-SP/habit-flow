@@ -3,15 +3,29 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/services/hive_service.dart';
 import '../../models/habit/habit_completion_model.dart';
+import '../../models/habit/habit_model.dart';
 import 'completion_repository.dart';
+import 'habit_repository.dart';
 
 class CompletionRepositoryImpl implements CompletionRepository {
-  CompletionRepositoryImpl();
+  final HabitRepository? _habitRepository;
+
+  CompletionRepositoryImpl([this._habitRepository]);
 
   final _uuid = const Uuid();
 
   Box<HabitCompletionModel> get _box =>
       Hive.box<HabitCompletionModel>(HiveService.completionsBox);
+
+  Future<List<HabitModel>> _getHabits() async {
+    if (_habitRepository != null) {
+      return await _habitRepository.getHabits();
+    }
+    if (Hive.isBoxOpen(HiveService.habitsBox)) {
+      return Hive.box<HabitModel>(HiveService.habitsBox).values.toList();
+    }
+    return [];
+  }
 
   @override
   Future<List<HabitCompletionModel>> getCompletions(String habitId) async {
@@ -98,13 +112,17 @@ class CompletionRepositoryImpl implements CompletionRepository {
 
   @override
   Future<int> getCurrentStreak() async {
-    int streak = 0;
+    final allHabits = await _getHabits();
+    final activeHabits = allHabits.where((h) => !h.isArchived).toList();
 
-    DateTime day = DateTime.now();
+    if (activeHabits.isEmpty) {
+      return 0;
+    }
 
-    bool hasCompletionOnDate(DateTime date) {
+    bool isHabitCompleted(String habitId, DateTime date) {
       return _box.values.any(
         (completion) =>
+            completion.habitId == habitId &&
             completion.completed &&
             completion.date.year == date.year &&
             completion.date.month == date.month &&
@@ -112,14 +130,52 @@ class CompletionRepositoryImpl implements CompletionRepository {
       );
     }
 
-    // If today is not completed yet, start checking from yesterday.
-    if (!hasCompletionOnDate(day)) {
-      day = day.subtract(const Duration(days: 1));
+    final earliestDate = activeHabits
+        .map((h) => DateTime(h.createdAt.year, h.createdAt.month, h.createdAt.day))
+        .reduce((a, b) => a.isBefore(b) ? a : b);
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    int streak = 0;
+
+    // Check today:
+    final scheduledToday =
+        activeHabits.where((h) => h.isScheduledOn(today)).toList();
+    if (scheduledToday.isNotEmpty) {
+      final todayCompleted =
+          scheduledToday.any((h) => isHabitCompleted(h.id, today));
+      if (todayCompleted) {
+        streak++;
+      }
     }
 
-    while (hasCompletionOnDate(day)) {
-      streak++;
-      day = day.subtract(const Duration(days: 1));
+    // Traverse previous days backwards from yesterday:
+    DateTime checkDay = today.subtract(const Duration(days: 1));
+
+    while (!checkDay.isBefore(earliestDate)) {
+      final scheduledOnDay = activeHabits.where((h) {
+        final createdDay =
+            DateTime(h.createdAt.year, h.createdAt.month, h.createdAt.day);
+        return !checkDay.isBefore(createdDay) && h.isScheduledOn(checkDay);
+      }).toList();
+
+      if (scheduledOnDay.isEmpty) {
+        // Unscheduled day: unscheduled days must not break the streak.
+        checkDay = checkDay.subtract(const Duration(days: 1));
+        continue;
+      }
+
+      final completed =
+          scheduledOnDay.any((h) => isHabitCompleted(h.id, checkDay));
+
+      if (completed) {
+        streak++;
+        checkDay = checkDay.subtract(const Duration(days: 1));
+      } else {
+        // Scheduled day was missed; streak breaks.
+        break;
+      }
     }
 
     return streak;

@@ -29,7 +29,7 @@ Future<void> setupServiceLocator() async {
   getIt.registerLazySingleton<HabitRepository>(() => HabitRepositoryImpl());
 
   getIt.registerLazySingleton<CompletionRepository>(
-    () => CompletionRepositoryImpl(),
+    () => CompletionRepositoryImpl(getIt<HabitRepository>()),
   );
 
   getIt.registerLazySingleton<NotificationSettingsRepository>(

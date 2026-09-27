@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../models/habit/habit_frequency.dart';
 import '../../models/habit/habit_with_completion.dart';
 import '../../repositories/habits/completion_repository.dart';
 import '../../repositories/habits/habit_repository.dart';
@@ -32,35 +31,18 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
       final habits = await _repository.getHabits();
 
       final habitsWithCompletion = <HabitWithCompletion>[];
-      final todayWeekday = (DateTime.now().weekday - 1);
+      final now = DateTime.now();
       int completedToday = 0;
       int todaysTotalCount = 0;
 
       for (final habit in habits) {
         final completed = await _completionRepository.isCompleted(
           habitId: habit.id,
-          date: DateTime.now(),
+          date: now,
         );
 
         // Check if scheduled today
-        bool isScheduledToday = false;
-        if (!habit.isArchived) {
-          switch (habit.frequency) {
-            case HabitFrequency.daily:
-              isScheduledToday = true;
-              break;
-            case HabitFrequency.weekly:
-              if (habit.targetDays.isNotEmpty) {
-                isScheduledToday = habit.targetDays.contains(todayWeekday);
-              } else {
-                isScheduledToday = (habit.createdAt.weekday - 1) == todayWeekday;
-              }
-              break;
-            case HabitFrequency.custom:
-              isScheduledToday = habit.targetDays.contains(todayWeekday);
-              break;
-          }
-        }
+        final isScheduledToday = habit.isScheduledOn(now);
 
         if (isScheduledToday) {
           todaysTotalCount++;

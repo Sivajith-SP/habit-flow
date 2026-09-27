@@ -8,6 +8,7 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../models/habit/habit_frequency.dart';
 import '../../../models/habit/habit_with_completion.dart';
+import '../../dashboard/widgets/create_habit/icon_cell.dart';
 
 class HabitManagementCard extends StatelessWidget {
   final HabitWithCompletion habit;
@@ -92,16 +93,21 @@ class HabitManagementCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14.r),
                         ),
                         alignment: Alignment.center,
-                        child: Icon(
-                          IconData(
-                            model.iconCodePoint,
-                            fontFamily: 'MaterialIcons',
-                          ),
-                          color: isArchived
-                              ? colorScheme.onSurfaceVariant
-                              : colorScheme.primary,
-                          size: 23.sp,
-                        ),
+                        child: isEmojiCodePoint(model.iconCodePoint)
+                            ? Text(
+                                String.fromCharCode(model.iconCodePoint),
+                                style: TextStyle(fontSize: 22.sp, height: 1),
+                              )
+                            : Icon(
+                                IconData(
+                                  model.iconCodePoint,
+                                  fontFamily: 'MaterialIcons',
+                                ),
+                                color: isArchived
+                                    ? colorScheme.onSurfaceVariant
+                                    : colorScheme.primary,
+                                size: 23.sp,
+                              ),
                       ),
 
                       SizedBox(width: 14.w),

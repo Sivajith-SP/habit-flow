@@ -2,23 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:habitflow/views/dashboard/widgets/empty_habits_state.dart';
-import 'package:habitflow/views/dashboard/widgets/habits_loading_state.dart';
-import 'package:habitflow/views/dashboard/widgets/progress_card.dart';
-import 'package:habitflow/views/dashboard/widgets/todays_habits_section.dart';
 
 import '../../app/config/service_locator.dart';
 import '../../app/router/app_routes.dart';
-import '../../app/theme/app_spacing.dart';
+import '../../app/theme/app_flow_tokens.dart';
 import '../../controllers/auth/auth_bloc.dart';
 import '../../controllers/auth/auth_state.dart';
-import '../../repositories/auth/auth_repository.dart';
 import '../../controllers/habits/habits_bloc.dart';
 import '../../controllers/habits/habits_event.dart';
 import '../../controllers/habits/habits_state.dart';
-import '../../models/habit/habit_frequency.dart';
+import '../../repositories/auth/auth_repository.dart';
 import 'widgets/add_habit_bottom_sheet.dart';
 import 'widgets/dashboard_header.dart';
+import 'widgets/empty_habits_state.dart';
+import 'widgets/habits_loading_state.dart';
+import 'widgets/main_progress_card.dart';
+import 'widgets/todays_habits_section.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -30,9 +29,28 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   String? _selectedHabitId;
 
+  /// Exposed to the habits section below so it can react to past-day
+  /// selection (show a summary instead of editable habits).
+  late final ValueNotifier<DateTime> _selectedDayNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _selectedDayNotifier =
+        ValueNotifier(DateTime(now.year, now.month, now.day));
+  }
+
+  @override
+  void dispose() {
+    _selectedDayNotifier.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final tokens = context.flowTokens;
+
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthInitial) {
@@ -48,162 +66,144 @@ class _DashboardScreenState extends State<DashboardScreen> {
             });
           }
         },
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: colorScheme.surface),
+        child: ColoredBox(
+          color: tokens.background,
           child: SafeArea(
             bottom: false,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 16.h),
+            child: BlocBuilder<HabitsBloc, HabitsState>(
+              builder: (context, habitsState) {
+                // Extract metrics from HabitsState
+                final int completedToday =
+                    habitsState is HabitsLoaded ? habitsState.completedToday : 0;
+                final int totalHabits =
+                    habitsState is HabitsLoaded ? habitsState.totalHabits : 0;
 
-                  // Fixed Top Header
-                  BlocBuilder<AuthBloc, AuthState>(
-                    builder: (context, state) {
-                      final authRepository = getIt<AuthRepository>();
-                      final repositoryName =
-                          authRepository.currentUserDisplayName?.trim();
+                return ListView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 140.h),
+                  children: [
+                    // 1. Top Bar & 2. Greeting
+                    BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, authState) {
+                        final authRepository = getIt<AuthRepository>();
+                        final repositoryName =
+                            authRepository.currentUserDisplayName?.trim();
 
-                      String fullName = 'HabitFlow User';
+                        String fullName = 'Sivajith';
+                        if (authState is AuthSuccess &&
+                            authState.userName.trim().isNotEmpty) {
+                          fullName = authState.userName.trim();
+                        } else if (repositoryName != null &&
+                            repositoryName.isNotEmpty) {
+                          fullName = repositoryName;
+                        }
 
-                      if (state is AuthSuccess &&
-                          state.userName.trim().isNotEmpty) {
-                        fullName = state.userName.trim();
-                      } else if (repositoryName != null &&
-                          repositoryName.isNotEmpty) {
-                        fullName = repositoryName;
-                      }
+                        // Extract only the first word (first name)
+                        final parts = fullName.split(RegExp(r'\s+'));
+                        final userName =
+                            (parts.isNotEmpty && parts.first.isNotEmpty)
+                                ? parts.first
+                                : 'Sivajith';
 
-                      // Extract only the first word (first name) from the full name.
-                      // e.g. "Sivajith Kumar Menon" → "Sivajith"
-                      final parts = fullName.split(RegExp(r'\s+'));
-                      final userName =
-                          (parts.isNotEmpty && parts.first.isNotEmpty)
-                              ? parts.first
-                              : 'HabitFlow User';
-
-                      return DashboardHeader(userName: userName);
-                    },
-                  ),
-
-                  SizedBox(height: 18.h),
-
-                  // Fixed Progress Card
-                  BlocBuilder<HabitsBloc, HabitsState>(
-                    builder: (context, state) {
-                      if (state is HabitsLoaded) {
-                        return ProgressCard(
-                          completedHabits: state.completedToday,
-                          totalHabits: state.totalHabits,
-                          weekProgress: state.weekProgress,
-                          currentStreak: state.currentStreak,
+                        return DashboardHeader(
+                          userName: userName,
+                          completedHabits: completedToday,
+                          totalHabits: totalHabits,
                         );
-                      }
-
-                      return const ProgressCard(
-                        completedHabits: 0,
-                        totalHabits: 0,
-                        weekProgress: [
-                          false,
-                          false,
-                          false,
-                          false,
-                          false,
-                          false,
-                          false,
-                        ],
-                        currentStreak: 0,
-                      );
-                    },
-                  ),
-
-                  SizedBox(height: 22.h),
-
-                  // Scrollable Habit Cards Section
-                  Expanded(
-                    child: BlocBuilder<HabitsBloc, HabitsState>(
-                      builder: (context, state) {
-                        if (state is HabitsLoading) {
-                          return const HabitsLoadingState();
-                        }
-
-                        if (state is HabitsLoaded) {
-                          final todayWeekday =
-                              (DateTime.now().weekday - 1); // 0 = Mon, 6 = Sun
-                          final activeHabits = state.habits.where((
-                            habitWithComp,
-                          ) {
-                            final h = habitWithComp.habit;
-                            if (h.isArchived) return false;
-
-                            switch (h.frequency) {
-                              case HabitFrequency.daily:
-                                return true;
-                              case HabitFrequency.weekly:
-                                // If weekly and targetDays specified, check if today is selected
-                                if (h.targetDays.isNotEmpty) {
-                                  return h.targetDays.contains(todayWeekday);
-                                }
-                                // Default weekly: scheduled on the weekday it was created
-                                final createdWeekday =
-                                    (h.createdAt.weekday - 1);
-                                return todayWeekday == createdWeekday;
-                              case HabitFrequency.custom:
-                                return h.targetDays.contains(todayWeekday);
-                            }
-                          }).toList();
-
-                          if (activeHabits.isEmpty) {
-                            return const EmptyHabitsState();
-                          }
-
-                          return TodaysHabitsSection(
-                            habits: activeHabits,
-                            selectedHabitId: _selectedHabitId,
-                            onHabitTap: (habit) {
-                              context.read<HabitsBloc>().add(
-                                ToggleHabitCompletion(habit),
-                              );
-                            },
-                            onHabitLongPress: (habit) {
-                              setState(() {
-                                _selectedHabitId = habit.id;
-                              });
-                            },
-                            onEditHabit: (habit) async {
-                              await showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (_) => BlocProvider.value(
-                                  value: context.read<HabitsBloc>(),
-                                  child: AddHabitBottomSheet(habit: habit),
-                                ),
-                              );
-
-                              setState(() {
-                                _selectedHabitId = null;
-                              });
-                            },
-                          );
-                        }
-
-                        if (state is HabitsError) {
-                          return Center(child: Text(state.message));
-                        }
-
-                        return const SizedBox.shrink();
                       },
                     ),
-                  ),
-                ],
-              ),
+
+                    SizedBox(height: 20.h),
+
+                    // 3. MainProgressCard (replaces ProgressCard + StatTilesRow)
+                    MainProgressCard(
+                      habitsState: habitsState,
+                      selectedDayNotifier: _selectedDayNotifier,
+                    ),
+
+                    SizedBox(height: 24.h),
+
+                    // 4. Today's Habits Section & 5. Completed Section
+                    _buildHabitsSection(habitsState),
+                  ],
+                );
+              },
             ),
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildHabitsSection(HabitsState state) {
+    if (state is HabitsLoading) {
+      return const HabitsLoadingState();
+    }
+
+    if (state is HabitsLoaded) {
+      final now = DateTime.now();
+      final activeHabits = state.habits.where((habitWithComp) {
+        return habitWithComp.habit.isScheduledOn(now);
+      }).toList();
+
+      if (activeHabits.isEmpty) {
+        return EmptyHabitsState(
+          onAddHabit: () => showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => BlocProvider.value(
+              value: context.read<HabitsBloc>(),
+              child: const AddHabitBottomSheet(),
+            ),
+          ),
+        );
+      }
+
+      return TodaysHabitsSection(
+        habits: activeHabits,
+        selectedHabitId: _selectedHabitId,
+        onHabitTap: (habit) {
+          context.read<HabitsBloc>().add(
+                ToggleHabitCompletion(habit),
+              );
+        },
+        onHabitLongPress: (habit) {
+          setState(() {
+            _selectedHabitId = habit.id;
+          });
+        },
+        onEditHabit: (habit) async {
+          await showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => BlocProvider.value(
+              value: context.read<HabitsBloc>(),
+              child: AddHabitBottomSheet(habit: habit),
+            ),
+          );
+
+          setState(() {
+            _selectedHabitId = null;
+          });
+        },
+      );
+    }
+
+    if (state is HabitsError) {
+      final tokens = context.flowTokens;
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 24.h),
+          child: Text(
+            state.message,
+            style: AppUrbanist.body(color: tokens.mutedText),
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 }

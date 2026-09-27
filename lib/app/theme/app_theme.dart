@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_flow_tokens.dart';
 import 'app_text_styles.dart';
 
 class AppTheme {
@@ -72,6 +73,7 @@ class AppTheme {
       ),
 
       dividerColor: AppColors.divider,
+      extensions: [HabitFlowTokens.light],
     );
   }
 
@@ -157,6 +159,7 @@ class AppTheme {
       ),
 
       dividerColor: AppColors.darkDivider,
+      extensions: [HabitFlowTokens.dark],
     );
   }
 }

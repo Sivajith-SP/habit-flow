@@ -25,6 +25,7 @@ class AppColors {
 
   static const Color border = Color(0xFFC0C9BC);
   static const Color divider = Color(0xFFDAE2D7);
+  static const Color field = Color(0xFFF3F0FA);
 
   // ─────────────────────────────────────────────
   // Dark Theme
@@ -41,6 +42,7 @@ class AppColors {
 
   static const Color darkBorder = Color(0xFF465646);
   static const Color darkDivider = Color(0xFF374537);
+  static const Color darkField = Color(0xFF262336);
 
   // ─────────────────────────────────────────────
   // Mesh Background

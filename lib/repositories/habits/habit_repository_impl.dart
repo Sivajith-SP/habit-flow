@@ -1,7 +1,6 @@
 import 'package:hive/hive.dart';
 
 import '../../core/services/hive_service.dart';
-import '../../models/habit/habit_frequency.dart';
 import '../../models/habit/habit_model.dart';
 import 'habit_repository.dart';
 
@@ -82,23 +81,8 @@ class HabitRepositoryImpl implements HabitRepository {
         !date.isAfter(lastDay);
         date = date.add(const Duration(days: 1))
       ) {
-        switch (habit.frequency) {
-          case HabitFrequency.daily:
-            total++;
-            break;
-
-          case HabitFrequency.weekly:
-            // Weekly habit is scheduled on its first target day.
-            if (habit.targetDays.contains(date.weekday - 1)) {
-              total++;
-            }
-            break;
-
-          case HabitFrequency.custom:
-            if (habit.targetDays.contains(date.weekday - 1)) {
-              total++;
-            }
-            break;
+        if (habit.isScheduledOn(date)) {
+          total++;
         }
       }
     }
