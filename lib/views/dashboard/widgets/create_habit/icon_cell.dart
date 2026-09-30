@@ -388,49 +388,8 @@ class _IconChip extends StatefulWidget {
   State<_IconChip> createState() => _IconChipState();
 }
 
-class _IconChipState extends State<_IconChip>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _springCtrl;
-  late final Animation<double> _springScale;
+class _IconChipState extends State<_IconChip> {
   bool _isPressed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _springCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 350),
-    );
-    _springScale = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween(begin: 1.0, end: 1.12),
-        weight: 30,
-      ),
-      TweenSequenceItem(
-        tween: Tween(begin: 1.12, end: 0.95),
-        weight: 35,
-      ),
-      TweenSequenceItem(
-        tween: Tween(begin: 0.95, end: 1.0),
-        weight: 35,
-      ),
-    ]).animate(CurvedAnimation(parent: _springCtrl, curve: Curves.easeInOut));
-  }
-
-  @override
-  void didUpdateWidget(_IconChip oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Trigger spring when item becomes selected
-    if (!oldWidget.isSelected && widget.isSelected) {
-      _springCtrl.forward(from: 0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _springCtrl.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -456,17 +415,8 @@ class _IconChipState extends State<_IconChip>
         onTapUp: (_) => setState(() => _isPressed = false),
         onTapCancel: () => setState(() => _isPressed = false),
         onTap: widget.onTap,
-        child: AnimatedBuilder(
-          animation: _springScale,
-          builder: (context, child) {
-            final scale = _springCtrl.isAnimating
-                ? _springScale.value
-                : (_isPressed ? 0.92 : 1.0);
-            return Transform.scale(
-              scale: scale,
-              child: child,
-            );
-          },
+        child: Transform.scale(
+          scale: _isPressed ? 0.92 : 1.0,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOut,
@@ -475,15 +425,6 @@ class _IconChipState extends State<_IconChip>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: bgColor,
-              boxShadow: widget.isSelected
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.16),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
             ),
             alignment: Alignment.center,
             child: isEmoji
@@ -936,6 +877,10 @@ class _IconPickerSheetState extends State<_IconPickerSheet> {
                     hintText: 'Search icons',
                     hintStyle: AppUrbanist.body(color: tokens.mutedText),
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: true,
+                    fillColor: Colors.transparent,
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -1075,6 +1020,10 @@ class _IconPickerSheetState extends State<_IconPickerSheet> {
                     hintText: 'Type or paste an emoji',
                     hintStyle: AppUrbanist.body(color: tokens.mutedText),
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: true,
+                    fillColor: Colors.transparent,
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
                   ),

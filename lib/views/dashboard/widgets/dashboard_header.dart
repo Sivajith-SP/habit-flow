@@ -11,14 +11,12 @@ class DashboardHeader extends StatefulWidget {
     this.userName = 'Sivajith',
     this.completedHabits = 0,
     this.totalHabits = 0,
-    this.onSearchTap,
     this.onNotificationsTap,
   });
 
   final String userName;
   final int completedHabits;
   final int totalHabits;
-  final VoidCallback? onSearchTap;
   final VoidCallback? onNotificationsTap;
 
   @override
@@ -125,38 +123,9 @@ class _DashboardHeaderState extends State<DashboardHeader>
               ),
             ),
 
-            // Right: 44px round search and notification buttons
+            // Right: notification button
             Row(
               children: [
-                // Search button
-                Semantics(
-                  button: true,
-                  label: 'Search habits',
-                  child: InkWell(
-                    onTap: widget.onSearchTap ?? () {},
-                    borderRadius: BorderRadius.circular(999),
-                    child: Container(
-                      width: 44.r,
-                      height: 44.r,
-                      decoration: BoxDecoration(
-                        color: tokens.raised,
-                        shape: BoxShape.circle,
-                        boxShadow: isDark ? null : tokens.cardShadow,
-                        border: isDark ? Border.all(color: tokens.border, width: 1) : null,
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.search_rounded,
-                          size: 22.sp,
-                          color: tokens.text,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                SizedBox(width: 10.w),
-
                 // Notification button with pink dot
                 Semantics(
                   button: true,
@@ -184,19 +153,6 @@ class _DashboardHeaderState extends State<DashboardHeader>
                             size: 22.sp,
                             color: tokens.text,
                           ),
-                          // Small pink unread dot
-                          // Positioned(
-                          //   top: 10.r,
-                          //   right: 11.r,
-                          //   child: Container(
-                          //     width: 7.r,
-                          //     height: 7.r,
-                          //     decoration: BoxDecoration(
-                          //       color: tokens.tilePinkIcon,
-                          //       shape: BoxShape.circle,
-                          //     ),
-                          //   ),
-                          // ),
                         ],
                       ),
                     ),

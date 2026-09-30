@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/theme/app_radius.dart';
-import '../../../app/theme/app_shadows.dart';
-import '../../../app/theme/app_spacing.dart';
-import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_flow_tokens.dart';
 
+/// Monthly consistency card with a circular progress ring and dynamic headline.
 class MonthlyProgressCard extends StatelessWidget {
   final int monthlyCompleted;
   final int monthlyTotal;
@@ -16,97 +14,123 @@ class MonthlyProgressCard extends StatelessWidget {
     required this.monthlyTotal,
   });
 
+  int get _pct => monthlyTotal == 0
+      ? 0
+      : ((monthlyCompleted / monthlyTotal) * 100).round();
+
+  String _headline() {
+    final p = _pct;
+    if (p == 0) return 'Just getting started';
+    if (p <= 40) return 'Building momentum';
+    if (p <= 70) return 'Great progress!';
+    if (p < 100) return 'Almost there! 🔥';
+    return 'Perfect month! 🏆';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final tokens = context.flowTokens;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final percentage = monthlyTotal == 0
-        ? 0
-        : ((monthlyCompleted / monthlyTotal) * 100).round();
+    final progressValue = monthlyTotal == 0
+        ? 0.0
+        : (monthlyCompleted / monthlyTotal).clamp(0.0, 1.0);
+
     return Container(
-      padding: EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.35),
-        ),
-        boxShadow: isDark ? null : AppShadows.soft,
+        color: tokens.surface,
+        borderRadius: BorderRadius.circular(24.r),
+        border: isDark ? Border.all(color: tokens.border, width: 1) : null,
+        boxShadow: isDark ? null : tokens.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header
           Text(
             'Monthly Progress',
-            style: AppTextStyles.title.copyWith(
-              color: colorScheme.onSurface,
+            style: AppUrbanist.body(
+              color: tokens.text,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
-
-          SizedBox(height: AppSpacing.xs),
-
+          SizedBox(height: 2.h),
           Text(
             'Your overall consistency this month',
-            style: AppTextStyles.caption.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: AppUrbanist.body(color: tokens.mutedText, fontSize: 13),
           ),
 
-          SizedBox(height: AppSpacing.lg),
+          SizedBox(height: 20.h),
 
           Row(
             children: [
+              // Ring
               SizedBox(
-                width: 82.w,
-                height: 82.w,
+                width: 88.w,
+                height: 88.w,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     SizedBox(
-                      width: 82.w,
-                      height: 82.w,
+                      width: 88.w,
+                      height: 88.w,
                       child: CircularProgressIndicator(
-                        value: monthlyTotal == 0
-                            ? 0.0
-                            : (monthlyCompleted / monthlyTotal).clamp(0.0, 1.0),
-                        strokeWidth: 8.w,
-                        backgroundColor: colorScheme.primary.withValues(
-                          alpha: 0.15,
-                        ),
-                        color: colorScheme.primary,
+                        value: progressValue,
+                        strokeWidth: 10.w,
+                        strokeCap: StrokeCap.round,
+                        backgroundColor: tokens.field,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(tokens.accent),
                       ),
                     ),
                     Text(
-                      '$percentage%',
-                      style: AppTextStyles.title.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w700,
+                      '$_pct%',
+                      style: AppUrbanist.body(
+                        color: tokens.accent,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              SizedBox(width: AppSpacing.lg),
+              SizedBox(width: 20.w),
 
+              // Insight text
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Great progress!',
-                      style: AppTextStyles.title.copyWith(
-                        color: colorScheme.onSurface,
+                      _headline(),
+                      style: AppUrbanist.body(
+                        color: tokens.text,
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    SizedBox(height: AppSpacing.xs),
+                    SizedBox(height: 6.h),
                     Text(
-                      'Keep completing your habits to improve your consistency.',
-                      style: AppTextStyles.caption.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      '$monthlyCompleted of $monthlyTotal habits this month',
+                      style: AppUrbanist.body(
+                        color: tokens.mutedText,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    // Progress bar
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4.r),
+                      child: LinearProgressIndicator(
+                        value: progressValue,
+                        minHeight: 6.h,
+                        backgroundColor: tokens.field,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(tokens.accent),
                       ),
                     ),
                   ],
