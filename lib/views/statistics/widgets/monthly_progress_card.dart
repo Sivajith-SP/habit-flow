@@ -3,15 +3,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../app/theme/app_flow_tokens.dart';
 
-/// Monthly consistency card with a circular progress ring and dynamic headline.
+/// Monthly consistency card — reference-image redesign.
+/// Lavender-tinted card, top-row label + streak pill, circular ring,
+/// insight text, and full-width linear progress bar.
 class MonthlyProgressCard extends StatelessWidget {
   final int monthlyCompleted;
   final int monthlyTotal;
+  final int currentStreak;
 
   const MonthlyProgressCard({
     super.key,
     required this.monthlyCompleted,
     required this.monthlyTotal,
+    required this.currentStreak,
   });
 
   int get _pct => monthlyTotal == 0
@@ -32,64 +36,103 @@ class MonthlyProgressCard extends StatelessWidget {
     final tokens = context.flowTokens;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final cardBg = tokens.tileLavender;
+    final accentColor = tokens.tileLavenderIcon;
+    final ringBg = accentColor.withValues(alpha: isDark ? 0.18 : 0.14);
+
     final progressValue = monthlyTotal == 0
         ? 0.0
         : (monthlyCompleted / monthlyTotal).clamp(0.0, 1.0);
 
     return Container(
-      padding: EdgeInsets.all(20.w),
+      padding: EdgeInsets.fromLTRB(18.w, 18.h, 18.w, 18.h),
       decoration: BoxDecoration(
-        color: tokens.surface,
+        color: cardBg,
         borderRadius: BorderRadius.circular(24.r),
-        border: isDark ? Border.all(color: tokens.border, width: 1) : null,
-        boxShadow: isDark ? null : tokens.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          Text(
-            'Monthly Progress',
-            style: AppUrbanist.body(
-              color: tokens.text,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          SizedBox(height: 2.h),
-          Text(
-            'Your overall consistency this month',
-            style: AppUrbanist.body(color: tokens.mutedText, fontSize: 13),
-          ),
-
-          SizedBox(height: 20.h),
-
+          // ── Top row: label + streak badge ──────────────────────────
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Ring
+              Text(
+                'Monthly progress',
+                style: AppUrbanist.body(
+                  color: accentColor.withValues(alpha: 0.75),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              // Streak pill badge
+              Container(
+                padding:
+                    EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
+                decoration: BoxDecoration(
+                  color: tokens.surface,
+                  borderRadius: BorderRadius.circular(50.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentColor.withValues(alpha: 0.10),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '🔥',
+                      style: TextStyle(fontSize: 13.sp),
+                    ),
+                    SizedBox(width: 5.w),
+                    Text(
+                      '$currentStreak day${currentStreak == 1 ? '' : 's'} streak',
+                      style: AppUrbanist.body(
+                        color: tokens.text,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: 16.h),
+
+          // ── Ring + insight text ────────────────────────────────────
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Circular ring
               SizedBox(
-                width: 88.w,
-                height: 88.w,
+                width: 80.w,
+                height: 80.w,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     SizedBox(
-                      width: 88.w,
-                      height: 88.w,
+                      width: 80.w,
+                      height: 80.w,
                       child: CircularProgressIndicator(
                         value: progressValue,
-                        strokeWidth: 10.w,
+                        strokeWidth: 9.w,
                         strokeCap: StrokeCap.round,
-                        backgroundColor: tokens.field,
+                        backgroundColor: ringBg,
                         valueColor:
-                            AlwaysStoppedAnimation<Color>(tokens.accent),
+                            AlwaysStoppedAnimation<Color>(accentColor),
                       ),
                     ),
                     Text(
                       '$_pct%',
                       style: AppUrbanist.body(
-                        color: tokens.accent,
-                        fontSize: 20,
+                        color: accentColor,
+                        fontSize: 18,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -97,7 +140,7 @@ class MonthlyProgressCard extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(width: 20.w),
+              SizedBox(width: 16.w),
 
               // Insight text
               Expanded(
@@ -107,31 +150,20 @@ class MonthlyProgressCard extends StatelessWidget {
                     Text(
                       _headline(),
                       style: AppUrbanist.body(
-                        color: tokens.text,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                        color: accentColor,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     SizedBox(height: 6.h),
                     Text(
-                      '$monthlyCompleted of $monthlyTotal habits this month',
+                      '$monthlyCompleted of $monthlyTotal habits this month.\nKeep completing your habits\nto improve your consistency.',
                       style: AppUrbanist.body(
-                        color: tokens.mutedText,
-                        fontSize: 13,
+                        color: accentColor.withValues(alpha: 0.75),
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
-                    ),
-                    SizedBox(height: 12.h),
-                    // Progress bar
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4.r),
-                      child: LinearProgressIndicator(
-                        value: progressValue,
-                        minHeight: 6.h,
-                        backgroundColor: tokens.field,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(tokens.accent),
-                      ),
+                      maxLines: 4,
                     ),
                   ],
                 ),

@@ -25,6 +25,7 @@ class StatisticsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.flowTokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ColoredBox(
       color: tokens.background,
@@ -55,12 +56,25 @@ class StatisticsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Text(
-                    _monthLabel(),
-                    style: AppUrbanist.body(
-                      color: tokens.mutedText,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                  // Month pill badge
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 14.w, vertical: 7.h),
+                    decoration: BoxDecoration(
+                      color: isDark ? tokens.raised : tokens.surface,
+                      borderRadius: BorderRadius.circular(50.r),
+                      boxShadow: isDark ? null : tokens.cardShadow,
+                      border: isDark
+                          ? Border.all(color: tokens.border, width: 1)
+                          : null,
+                    ),
+                    child: Text(
+                      _monthLabel(),
+                      style: AppUrbanist.body(
+                        color: tokens.text,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -132,27 +146,28 @@ class _StatisticsBody extends StatelessWidget {
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, listBottom),
       children: [
-        // 1. KPI tiles
+        // 1. Monthly ring card (includes streak badge inside)
+        MonthlyProgressCard(
+          monthlyCompleted: state.monthlyCompleted,
+          monthlyTotal: state.monthlyTotal,
+          currentStreak: state.currentStreak,
+        ),
+
+        SizedBox(height: 14.h),
+
+        // 2. KPI tiles (Completion + Completed)
         StatisticsOverviewCard(
           completedToday: state.completedToday,
           totalHabits: state.totalHabits,
           currentStreak: state.currentStreak,
         ),
 
-        SizedBox(height: 16.h),
-
-        // 2. Monthly ring
-        MonthlyProgressCard(
-          monthlyCompleted: state.monthlyCompleted,
-          monthlyTotal: state.monthlyTotal,
-        ),
-
-        SizedBox(height: 16.h),
+        SizedBox(height: 14.h),
 
         // 3. Weekly bar chart
         WeeklyProgressCard(weeklyProgress: state.weeklyProgress),
 
-        SizedBox(height: 16.h),
+        SizedBox(height: 14.h),
 
         // 4. Streak banner
         StreakCard(currentStreak: state.currentStreak),
@@ -178,40 +193,44 @@ class _LoadingSkeleton extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, listBottom),
       children: [
+        // Monthly card skeleton
+        Container(
+          height: 160.h,
+          decoration: BoxDecoration(
+            color: tokens.field,
+            borderRadius: BorderRadius.circular(24.r),
+          ),
+        ),
+        SizedBox(height: 14.h),
+        // 2-tile overview skeleton
         Row(
           children: List.generate(
-            3,
+            2,
             (i) => Expanded(
               child: Container(
-                margin: EdgeInsets.only(right: i < 2 ? 10.w : 0),
-                height: 88.h,
+                margin: EdgeInsets.only(right: i < 1 ? 12.w : 0),
+                height: 96.h,
                 decoration: BoxDecoration(
                   color: tokens.field,
-                  borderRadius: BorderRadius.circular(20.r),
+                  borderRadius: BorderRadius.circular(22.r),
                 ),
               ),
             ),
           ),
         ),
-        SizedBox(height: 16.h),
-        Container(
-          height: 140.h,
-          decoration: BoxDecoration(
-            color: tokens.field,
-            borderRadius: BorderRadius.circular(20.r),
-          ),
-        ),
-        SizedBox(height: 16.h),
+        SizedBox(height: 14.h),
+        // Weekly chart skeleton
         Container(
           height: 220.h,
           decoration: BoxDecoration(
             color: tokens.field,
-            borderRadius: BorderRadius.circular(20.r),
+            borderRadius: BorderRadius.circular(24.r),
           ),
         ),
-        SizedBox(height: 16.h),
+        SizedBox(height: 14.h),
+        // Streak banner skeleton
         Container(
-          height: 72.h,
+          height: 80.h,
           decoration: BoxDecoration(
             color: tokens.field,
             borderRadius: BorderRadius.circular(20.r),
@@ -221,3 +240,4 @@ class _LoadingSkeleton extends StatelessWidget {
     );
   }
 }
+

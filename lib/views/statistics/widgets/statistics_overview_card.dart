@@ -3,7 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../app/theme/app_flow_tokens.dart';
 
-/// Three floating KPI tiles: Completion %, Completed Today, Streak.
+/// Two-tile overview row — Completion % and Completed count.
+/// Matches the reference image layout: label on top, large value below,
+/// icon in the top-right corner.
 class StatisticsOverviewCard extends StatelessWidget {
   final int completedToday;
   final int totalHabits;
@@ -26,30 +28,25 @@ class StatisticsOverviewCard extends StatelessWidget {
 
     return Row(
       children: [
+        // Completion % — mint green
         Expanded(
-          child: _KpiTile(
-            value: '$pct%',
+          child: _OverviewTile(
             label: 'Completion',
-            bg: tokens.tileLavender,
-            valueColor: tokens.tileLavenderIcon,
-          ),
-        ),
-        SizedBox(width: 10.w),
-        Expanded(
-          child: _KpiTile(
-            value: '$completedToday',
-            label: 'Completed',
+            value: '$pct%',
             bg: tokens.tileMint,
             valueColor: tokens.tileMintIcon,
+            icon: Icons.check_circle_outline_rounded,
           ),
         ),
-        SizedBox(width: 10.w),
+        SizedBox(width: 12.w),
+        // Completed today — butter yellow
         Expanded(
-          child: _KpiTile(
-            value: '🔥 $currentStreak',
-            label: 'Streak',
+          child: _OverviewTile(
+            label: 'Completed',
+            value: '$completedToday',
             bg: tokens.tileButter,
             valueColor: tokens.tileButterIcon,
+            icon: Icons.check_rounded,
           ),
         ),
       ],
@@ -57,52 +54,71 @@ class StatisticsOverviewCard extends StatelessWidget {
   }
 }
 
-class _KpiTile extends StatelessWidget {
-  final String value;
+class _OverviewTile extends StatelessWidget {
   final String label;
+  final String value;
   final Color bg;
   final Color valueColor;
+  final IconData icon;
 
-  const _KpiTile({
-    required this.value,
+  const _OverviewTile({
     required this.label,
+    required this.value,
     required this.bg,
     required this.valueColor,
+    required this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 88.h,
+      height: 96.h,
+      padding: EdgeInsets.fromLTRB(16.w, 14.h, 14.w, 14.h),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(22.r),
       ),
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Label row with icon
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                label,
+                style: AppUrbanist.body(
+                  color: valueColor.withValues(alpha: 0.80),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              // Circle icon badge
+              Container(
+                width: 26.r,
+                height: 26.r,
+                decoration: BoxDecoration(
+                  color: valueColor.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: valueColor,
+                  size: 15.sp,
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          // Large value
           Text(
             value,
             style: AppUrbanist.body(
               color: valueColor,
-              fontSize: 22,
+              fontSize: 30,
               fontWeight: FontWeight.w800,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            label,
-            style: AppUrbanist.body(
-              color: valueColor.withValues(alpha: 0.75),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

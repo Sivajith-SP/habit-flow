@@ -4,7 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../app/theme/app_flow_tokens.dart';
 
-/// Weekly activity card with an animated fl_chart BarChart.
+/// Weekly activity card — reference-image redesign.
+/// White surface card, pill-shaped bars (fully rounded), completed bars in
+/// pink/magenta, today highlighted in accent purple, inactive bars grey.
 class WeeklyProgressCard extends StatelessWidget {
   final List<bool> weeklyProgress;
 
@@ -20,8 +22,13 @@ class WeeklyProgressCard extends StatelessWidget {
     // today's weekday index: Monday=0 … Sunday=6
     final todayIdx = DateTime.now().weekday - 1;
 
+    // Colours matching the reference image
+    final completedColor = tokens.tilePinkIcon; // pink/magenta
+    final todayColor = tokens.accent;           // accent purple
+    final inactiveColor = tokens.field;         // light grey
+
     return Container(
-      padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 16.h),
+      padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 20.h),
       decoration: BoxDecoration(
         color: tokens.surface,
         borderRadius: BorderRadius.circular(24.r),
@@ -33,7 +40,7 @@ class WeeklyProgressCard extends StatelessWidget {
         children: [
           // Header
           Text(
-            'Weekly Activity',
+            'Weekly activity',
             style: AppUrbanist.body(
               color: tokens.text,
               fontSize: 16,
@@ -61,24 +68,39 @@ class WeeklyProgressCard extends StatelessWidget {
                     final isCompleted =
                         i < weeklyProgress.length && weeklyProgress[i];
                     final isToday = i == todayIdx;
+
+                    // The front rod is always full height (1.0) with the grey
+                    // pill as the background. For completed/today days the
+                    // coloured fill stacks on top via a rod stack, simulating
+                    // the "water in a glass" look.
+                    Color fillColor;
+                    double fillLevel;
+                    if (isCompleted) {
+                      fillColor = completedColor;
+                      fillLevel = 1.0;
+                    } else if (isToday) {
+                      fillColor = todayColor;
+                      fillLevel = 1.0;
+                    } else {
+                      // No fill — transparent front rod, grey bg shows
+                      fillColor = Colors.transparent;
+                      fillLevel = 1.0;
+                    }
+
                     return BarChartGroupData(
                       x: i,
                       barRods: [
                         BarChartRodData(
-                          toY: isCompleted ? 1.0 : 0.28,
-                          color: isCompleted
-                              ? tokens.accent
-                              : tokens.field,
-                          width: 28.w,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(7),
-                          ),
+                          // Front rod = colored fill (or transparent)
+                          toY: fillLevel,
+                          color: fillColor,
+                          width: 26.w,
+                          borderRadius: BorderRadius.circular(13.r),
+                          // Background rod = always full-height grey pill
                           backDrawRodData: BackgroundBarChartRodData(
                             show: true,
                             toY: 1.0,
-                            color: isToday
-                                ? tokens.accent.withValues(alpha: 0.10)
-                                : Colors.transparent,
+                            color: inactiveColor,
                           ),
                         ),
                       ],
@@ -95,8 +117,37 @@ class WeeklyProgressCard extends StatelessWidget {
                   rightTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 24.h,
+                      getTitlesWidget: (value, meta) {
+                        final i = value.toInt();
+                        if (i < 0 || i >= _dayLabels.length) {
+                          return const SizedBox.shrink();
+                        }
+                        final isCompleted =
+                            i < weeklyProgress.length && weeklyProgress[i];
+                        final isToday = i == todayIdx;
+                        // Show "1" above completed or today bars like in ref
+                        if (isCompleted || isToday) {
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 4.h),
+                            child: Text(
+                              '1',
+                              style: AppUrbanist.body(
+                                color: isCompleted
+                                    ? completedColor
+                                    : tokens.accent,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
                   ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
