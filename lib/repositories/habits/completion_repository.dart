@@ -12,6 +12,10 @@ abstract class CompletionRepository {
 
   Future<List<bool>> getCurrentWeekProgress();
 
+  Future<List<int>> getCurrentWeekDailyCompletions();
+
+  Future<List<int>> getCurrentWeekDailyTotals();
+
   Future<int> getCurrentStreak();
 
   Future<int> getMonthlyCompleted();

@@ -86,8 +86,10 @@ class CompletionRepositoryImpl implements CompletionRepository {
 
   @override
   Future<List<bool>> getCurrentWeekProgress() async {
-    final today = DateTime.now();
+    final habits = await _getHabits();
+    final activeHabits = habits.where((h) => !h.isArchived).toList();
 
+    final today = DateTime.now();
     // Monday of current week
     final monday = today.subtract(Duration(days: today.weekday - 1));
 
@@ -95,16 +97,66 @@ class CompletionRepositoryImpl implements CompletionRepository {
 
     for (int i = 0; i < 7; i++) {
       final date = monday.add(Duration(days: i));
+      final scheduled =
+          activeHabits.where((h) => h.isScheduledOn(date)).toList();
+      final totalForDay =
+          scheduled.isNotEmpty ? scheduled.length : activeHabits.length;
 
-      final completed = _box.values.any(
-        (completion) =>
-            completion.completed &&
-            completion.date.year == date.year &&
-            completion.date.month == date.month &&
-            completion.date.day == date.day,
-      );
+      if (totalForDay == 0) {
+        result.add(false);
+        continue;
+      }
 
-      result.add(completed);
+      int completedCount = 0;
+      for (final habit in (scheduled.isNotEmpty ? scheduled : activeHabits)) {
+        final done = await isCompleted(habitId: habit.id, date: date);
+        if (done) completedCount++;
+      }
+
+      result.add(completedCount >= totalForDay);
+    }
+
+    return result;
+  }
+
+  @override
+  Future<List<int>> getCurrentWeekDailyCompletions() async {
+    final habits = await _getHabits();
+    final activeHabits = habits.where((h) => !h.isArchived).toList();
+
+    final today = DateTime.now();
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+
+    final result = <int>[];
+
+    for (int i = 0; i < 7; i++) {
+      final date = monday.add(Duration(days: i));
+      int completedCount = 0;
+      for (final habit in activeHabits) {
+        final done = await isCompleted(habitId: habit.id, date: date);
+        if (done) completedCount++;
+      }
+      result.add(completedCount);
+    }
+
+    return result;
+  }
+
+  @override
+  Future<List<int>> getCurrentWeekDailyTotals() async {
+    final habits = await _getHabits();
+    final activeHabits = habits.where((h) => !h.isArchived).toList();
+
+    final today = DateTime.now();
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+
+    final result = <int>[];
+
+    for (int i = 0; i < 7; i++) {
+      final date = monday.add(Duration(days: i));
+      final scheduled =
+          activeHabits.where((h) => h.isScheduledOn(date)).toList();
+      result.add(scheduled.isNotEmpty ? scheduled.length : activeHabits.length);
     }
 
     return result;

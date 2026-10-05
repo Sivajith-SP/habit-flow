@@ -21,8 +21,8 @@ class StreakCard extends StatelessWidget {
     final tokens = context.flowTokens;
 
     return Container(
-      height: 80.h,
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      // No fixed height — padding gives breathing room on all screen sizes
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
       decoration: BoxDecoration(
         color: tokens.tileButter,
         borderRadius: BorderRadius.circular(20.r),

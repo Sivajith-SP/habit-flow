@@ -18,6 +18,8 @@ class StatisticsLoading extends StatisticsState {
 class StatisticsLoaded extends StatisticsState {
   final int currentStreak;
   final List<bool> weeklyProgress;
+  final List<int> dailyCompletions;
+  final List<int> dailyTotals;
   final int completedToday;
   final int totalHabits;
   final int monthlyCompleted;
@@ -26,6 +28,8 @@ class StatisticsLoaded extends StatisticsState {
   const StatisticsLoaded({
     required this.currentStreak,
     required this.weeklyProgress,
+    this.dailyCompletions = const [],
+    this.dailyTotals = const [],
     required this.completedToday,
     required this.totalHabits,
     required this.monthlyCompleted,
@@ -36,6 +40,8 @@ class StatisticsLoaded extends StatisticsState {
   List<Object?> get props => [
     currentStreak,
     weeklyProgress,
+    dailyCompletions,
+    dailyTotals,
     completedToday,
     totalHabits,
     monthlyCompleted,

@@ -70,6 +70,12 @@ class _FakeCompletionRepository implements CompletionRepository {
   Future<List<bool>> getCurrentWeekProgress() async => List.filled(7, false);
 
   @override
+  Future<List<int>> getCurrentWeekDailyCompletions() async => List.filled(7, 0);
+
+  @override
+  Future<List<int>> getCurrentWeekDailyTotals() async => List.filled(7, 0);
+
+  @override
   Future<int> getCurrentStreak() async => 0;
 
   @override

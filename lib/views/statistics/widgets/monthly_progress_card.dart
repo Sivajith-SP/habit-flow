@@ -44,6 +44,9 @@ class MonthlyProgressCard extends StatelessWidget {
         ? 0.0
         : (monthlyCompleted / monthlyTotal).clamp(0.0, 1.0);
 
+    // Ring size: 80.w but cap at 88 logical px so narrow screens aren't dominated
+    final ringSize = (80.w).clamp(0.0, 88.0);
+
     return Container(
       padding: EdgeInsets.fromLTRB(18.w, 18.h, 18.w, 18.h),
       decoration: BoxDecoration(
@@ -57,16 +60,21 @@ class MonthlyProgressCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'Monthly progress',
-                style: AppUrbanist.body(
-                  color: accentColor.withValues(alpha: 0.75),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+              // Flexible so it shrinks before the pill overflows
+              Flexible(
+                child: Text(
+                  'Monthly progress',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppUrbanist.body(
+                    color: accentColor.withValues(alpha: 0.75),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              const Spacer(),
-              // Streak pill badge
+              SizedBox(width: 8.w),
+              // Streak pill badge — flex: 0 so it stays compact
               Container(
                 padding:
                     EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
@@ -109,19 +117,19 @@ class MonthlyProgressCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Circular ring
+              // Circular ring — size clamped so it doesn't dominate narrow screens
               SizedBox(
-                width: 80.w,
-                height: 80.w,
+                width: ringSize,
+                height: ringSize,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     SizedBox(
-                      width: 80.w,
-                      height: 80.w,
+                      width: ringSize,
+                      height: ringSize,
                       child: CircularProgressIndicator(
                         value: progressValue,
-                        strokeWidth: 9.w,
+                        strokeWidth: (ringSize * 0.11).clamp(7.0, 11.0),
                         strokeCap: StrokeCap.round,
                         backgroundColor: ringBg,
                         valueColor:
@@ -132,7 +140,7 @@ class MonthlyProgressCard extends StatelessWidget {
                       '$_pct%',
                       style: AppUrbanist.body(
                         color: accentColor,
-                        fontSize: 18,
+                        fontSize: (ringSize * 0.22).clamp(14.0, 18.0),
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -149,21 +157,24 @@ class MonthlyProgressCard extends StatelessWidget {
                   children: [
                     Text(
                       _headline(),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: AppUrbanist.body(
                         color: accentColor,
-                        fontSize: 17,
+                        fontSize: 15,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     SizedBox(height: 6.h),
                     Text(
-                      '$monthlyCompleted of $monthlyTotal habits this month.\nKeep completing your habits\nto improve your consistency.',
+                      '$monthlyCompleted of $monthlyTotal habits this month. Keep completing your habits to improve your consistency.',
                       style: AppUrbanist.body(
                         color: accentColor.withValues(alpha: 0.75),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
                       maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

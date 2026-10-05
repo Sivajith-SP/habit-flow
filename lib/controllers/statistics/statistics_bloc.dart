@@ -36,11 +36,18 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
       final monthlyTotal = await _habitRepository.getMonthlyScheduledCount();
 
       int completedToday = 0;
+      int scheduledToday = 0;
 
+      final now = DateTime.now();
       for (final habit in activeHabits) {
+        final isScheduledToday = habit.isScheduledOn(now);
+        if (!isScheduledToday) continue;
+
+        scheduledToday++;
+
         final completed = await _completionRepository.isCompleted(
           habitId: habit.id,
-          date: DateTime.now(),
+          date: now,
         );
 
         if (completed) {
@@ -53,7 +60,7 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
           currentStreak: currentStreak,
           weeklyProgress: weeklyProgress,
           completedToday: completedToday,
-          totalHabits: activeHabits.length,
+          totalHabits: scheduledToday,
           monthlyCompleted: monthlyCompleted,
           monthlyTotal: monthlyTotal,
         ),
