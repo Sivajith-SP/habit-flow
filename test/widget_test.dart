@@ -55,8 +55,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('MONTHLY CONSISTENCY'), findsOneWidget);
-      expect(find.text('7d streak'), findsOneWidget);
+      expect(find.text('Monthly progress'), findsOneWidget);
+      expect(find.text('7 day streak'), findsOneWidget);
       expect(find.text('84%'), findsOneWidget);
     });
 
@@ -101,7 +101,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Current Streak'), findsOneWidget);
-      expect(find.text('14 Days'), findsOneWidget);
+      expect(find.text('14 days'), findsOneWidget);
     });
 
     testWidgets('Statistics widgets render in dark mode without overflow',
@@ -135,7 +135,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('75%'), findsOneWidget);
+      expect(find.text('75%'), findsNWidgets(2));
       expect(find.text("Today's Rate"), findsOneWidget);
       expect(find.text('Done Today'), findsOneWidget);
     });

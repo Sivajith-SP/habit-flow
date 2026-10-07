@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../app/theme/app_flow_tokens.dart';
+import '../../dashboard/widgets/streak_pill.dart';
 
 /// Monthly consistency card — reference-image redesign.
 /// Lavender-tinted card, top-row label + streak pill, circular ring,
@@ -58,10 +59,10 @@ class MonthlyProgressCard extends StatelessWidget {
         children: [
           // ── Top row: label + streak badge ──────────────────────────
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Flexible so it shrinks before the pill overflows
-              Flexible(
+              Expanded(
                 child: Text(
                   'Monthly progress',
                   maxLines: 1,
@@ -74,40 +75,7 @@ class MonthlyProgressCard extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 8.w),
-              // Streak pill badge — flex: 0 so it stays compact
-              Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
-                decoration: BoxDecoration(
-                  color: tokens.surface,
-                  borderRadius: BorderRadius.circular(50.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: accentColor.withValues(alpha: 0.10),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '🔥',
-                      style: TextStyle(fontSize: 13.sp),
-                    ),
-                    SizedBox(width: 5.w),
-                    Text(
-                      '$currentStreak day${currentStreak == 1 ? '' : 's'} streak',
-                      style: AppUrbanist.body(
-                        color: tokens.text,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              StreakPill(streak: currentStreak),
             ],
           ),
 

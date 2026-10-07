@@ -37,7 +37,7 @@ class StatisticsOverviewCard extends StatelessWidget {
               subtitle: '$completedToday of $totalHabits habits',
               bg: tokens.tileMint,
               valueColor: tokens.tileMintIcon,
-              icon: Icons.check_circle_outline_rounded,
+              icon: Icons.percent_rounded,
             ),
           ),
           SizedBox(width: 12.w),
@@ -49,7 +49,7 @@ class StatisticsOverviewCard extends StatelessWidget {
               subtitle: totalHabits == 0 ? 'no habits scheduled' : 'habits finished',
               bg: tokens.tileButter,
               valueColor: tokens.tileButterIcon,
-              icon: Icons.check_rounded,
+              icon: Icons.task_alt_rounded,
             ),
           ),
         ],
@@ -90,10 +90,10 @@ class _OverviewTile extends StatelessWidget {
         children: [
           // Label row with icon
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Flexible prevents the label from overflowing the row
-              Flexible(
+              Expanded(
                 child: Text(
                   label,
                   maxLines: 1,

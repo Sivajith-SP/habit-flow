@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/theme/app_radius.dart';
-import '../../../app/theme/app_spacing.dart';
-import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_flow_tokens.dart';
 
 class SettingsTile extends StatelessWidget {
   final IconData icon;
@@ -11,6 +9,8 @@ class SettingsTile extends StatelessWidget {
   final String? subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
+  final Color? iconBg;
+  final Color? iconColor;
 
   const SettingsTile({
     super.key,
@@ -19,63 +19,72 @@ class SettingsTile extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.onTap,
+    this.iconBg,
+    this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final tokens = context.flowTokens;
+
+    final effectiveIconBg =
+        iconBg ?? tokens.tileLavender;
+    final effectiveIconColor =
+        iconColor ?? tokens.tileLavenderIcon;
 
     return Material(
-      // Transparent so the parent Card container's color shows through
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(22.r),
         onTap: onTap,
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: 14.h,
+            horizontal: 16.w,
+            vertical: 13.h,
           ),
           child: Row(
             children: [
-              // Icon badge
+              // Squircle icon badge
               Container(
-                width: 40.w,
-                height: 40.w,
+                width: 42.r,
+                height: 42.r,
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  color: effectiveIconBg,
+                  borderRadius: BorderRadius.circular(13.r),
                 ),
+                alignment: Alignment.center,
                 child: Icon(
                   icon,
-                  color: colorScheme.primary,
+                  color: effectiveIconColor,
                   size: 20.sp,
                 ),
               ),
 
-              SizedBox(width: AppSpacing.md),
+              SizedBox(width: 14.w),
 
+              // Title and subtitle
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: AppTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
+                      style: AppUrbanist.body(
+                        color: tokens.text,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-
                     if (subtitle != null) ...[
                       SizedBox(height: 2.h),
                       Text(
                         subtitle!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.caption.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                        style: AppUrbanist.body(
+                          color: tokens.mutedText,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -83,12 +92,13 @@ class SettingsTile extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(width: AppSpacing.sm),
+              SizedBox(width: 8.w),
 
+              // Trailing widget or subtle chevron
               trailing ??
                   Icon(
                     Icons.chevron_right_rounded,
-                    color: colorScheme.onSurfaceVariant,
+                    color: tokens.mutedText.withValues(alpha: 0.60),
                     size: 20.sp,
                   ),
             ],

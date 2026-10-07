@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/theme/app_radius.dart';
-import '../../../app/theme/app_spacing.dart';
-import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_flow_tokens.dart';
 
 class SettingsSection extends StatelessWidget {
   final String title;
@@ -17,44 +15,52 @@ class SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final tokens = context.flowTokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section label
+        // Section label (uppercase, letter-spaced)
         Padding(
-          padding: EdgeInsets.only(left: 4.w, bottom: AppSpacing.sm),
+          padding: EdgeInsets.only(left: 4.w, bottom: 8.h),
           child: Text(
             title.toUpperCase(),
-            style: AppTextStyles.caption.copyWith(
-              fontSize: 11.sp,
+            style: AppUrbanist.body(
+              color: tokens.mutedText,
+              fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: colorScheme.primary,
-              letterSpacing: 1.1,
-            ),
+            ).copyWith(letterSpacing: 1.2),
           ),
         ),
 
-        // Card container for tiles
+        // Rounded card container matching dashboard / statistics style
         Container(
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+            color: isDark ? tokens.raised : tokens.surface,
+            borderRadius: BorderRadius.circular(22.r),
+            border: isDark ? Border.all(color: tokens.border, width: 1) : null,
+            boxShadow: isDark ? null : tokens.cardShadow,
           ),
-          child: Column(
-            children: [
-              for (int i = 0; i < children.length; i++) ...[
-                children[i],
-                if (i < children.length - 1)
-                  Divider(
-                    height: 1,
-                    indent: 44.w + AppSpacing.md * 2, // align with text start
-                    endIndent: AppSpacing.md,
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                  ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(22.r),
+            child: Column(
+              children: [
+                for (int i = 0; i < children.length; i++) ...[
+                  children[i],
+                  if (i < children.length - 1)
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      indent: 72.w,
+                      endIndent: 16.w,
+                      color: isDark
+                          ? tokens.border.withValues(alpha: 0.5)
+                          : const Color(0xFFF0EDF6),
+                    ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ],
