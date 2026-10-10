@@ -24,7 +24,8 @@ class _FakeAuthRepository implements AuthRepository {
   bool get isLoggedIn => true;
 
   @override
-  Future<void> changePassword({required String currentPassword, required String newPassword}) async {}
+  Future<void> changePassword(
+      {required String currentPassword, required String newPassword}) async {}
 
   @override
   Future<void> deleteAccount({required String password}) async {}
@@ -36,7 +37,8 @@ class _FakeAuthRepository implements AuthRepository {
   Future<void> logout() async {}
 
   @override
-  Future<void> register({required String email, required String password}) async {}
+  Future<void> register(
+      {required String email, required String password}) async {}
 
   @override
   Future<void> updateUserName(String name) async {}
@@ -92,7 +94,8 @@ void main() {
   });
 
   group('SettingsScreen Widget Tests', () {
-    testWidgets('renders all sections and profile banner on 360px screen',
+    testWidgets(
+        'renders grid for Security & Password and single card for list without red dot',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(360, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -115,30 +118,38 @@ void main() {
       expect(find.text('Settings'), findsOneWidget);
       expect(find.text('Manage your app preferences'), findsOneWidget);
 
-      // Profile banner
+      // Profile hero banner
       expect(find.text('Sivajith'), findsOneWidget);
       expect(find.text('sivajith.online@gmail.com'), findsOneWidget);
       expect(find.text('S'), findsOneWidget);
 
-      // Section labels
-      expect(find.text('SECURITY'), findsOneWidget);
-      expect(find.text('APPEARANCE'), findsOneWidget);
-      expect(find.text('PREFERENCES'), findsOneWidget);
-      expect(find.text('ABOUT'), findsOneWidget);
+      // Verify category headers are absent
+      expect(find.text('ACCOUNT'), findsNothing);
+      expect(find.text('APPEARANCE'), findsNothing);
+      expect(find.text('PREFERENCES'), findsNothing);
+      expect(find.text('ABOUT'), findsNothing);
 
-      // Verify duplicate Profile tile is absent
+      // Verify duplicate Profile grid tile is removed
       expect(find.text('Profile'), findsNothing);
 
-      // Tiles
+      // Grid Row: Security & Password
       expect(find.text('Security'), findsOneWidget);
+      expect(find.text('Account protection'), findsOneWidget);
+      expect(find.text('Password'), findsOneWidget);
+      expect(find.text('Change password'), findsOneWidget);
+
+      // Unified List Card items: Dark mode, Notifications, About, Privacy
       expect(find.text('Dark mode'), findsOneWidget);
       expect(find.text('Notifications'), findsOneWidget);
+      expect(find.text('Habit reminders & alerts'), findsOneWidget);
       expect(find.text('About HabitFlow'), findsOneWidget);
+      expect(find.text('App version & info'), findsOneWidget);
       expect(find.text('Privacy'), findsOneWidget);
+      expect(find.text('Data & security'), findsOneWidget);
 
-      // Footer App Name & Version
-      expect(find.text('HabitFlow'), findsOneWidget);
-      expect(find.text('Version 1.0.0'), findsOneWidget);
+      // Footer App Name & Version (at bottom of scroll list)
+      expect(find.text('HabitFlow', skipOffstage: false), findsOneWidget);
+      expect(find.text('Version 1.0.0', skipOffstage: false), findsOneWidget);
 
       // Verify Log out button is removed
       expect(find.text('Log out'), findsNothing);
@@ -189,7 +200,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
 
-      // Find switch and tap it
+      // Find switch inside Dark mode tile and tap it
       final switchFinder = find.byType(Switch);
       expect(switchFinder, findsOneWidget);
       await tester.tap(switchFinder);

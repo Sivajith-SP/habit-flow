@@ -26,31 +26,39 @@ class SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.flowTokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final effectiveIconBg =
-        iconBg ?? tokens.tileLavender;
+    final effectiveIconBg = iconBg ?? tokens.tileLavenderIcon;
     final effectiveIconColor =
-        iconColor ?? tokens.tileLavenderIcon;
+        iconColor ?? (isDark ? tokens.background : Colors.white);
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(22.r),
         onTap: onTap,
         child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: 16.w,
-            vertical: 13.h,
+            vertical: 14.h,
           ),
           child: Row(
             children: [
-              // Squircle icon badge
+              // Circular accent icon badge
               Container(
                 width: 42.r,
                 height: 42.r,
                 decoration: BoxDecoration(
                   color: effectiveIconBg,
-                  borderRadius: BorderRadius.circular(13.r),
+                  shape: BoxShape.circle,
+                  boxShadow: isDark
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                 ),
                 alignment: Alignment.center,
                 child: Icon(
@@ -71,7 +79,7 @@ class SettingsTile extends StatelessWidget {
                       title,
                       style: AppUrbanist.body(
                         color: tokens.text,
-                        fontSize: 15,
+                        fontSize: 15.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -83,7 +91,7 @@ class SettingsTile extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: AppUrbanist.body(
                           color: tokens.mutedText,
-                          fontSize: 12,
+                          fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

@@ -10,7 +10,7 @@ import '../../controllers/auth/auth_bloc.dart';
 import '../../controllers/auth/auth_state.dart';
 import '../../controllers/theme/theme_cubit.dart';
 import '../../repositories/auth/auth_repository.dart';
-import 'widgets/settings_section.dart';
+import 'widgets/settings_bento_card.dart';
 import 'widgets/settings_tile.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -97,6 +97,18 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildDivider(bool isDark, HabitFlowTokens tokens) {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      indent: 72.w,
+      endIndent: 16.w,
+      color: isDark
+          ? tokens.border.withValues(alpha: 0.5)
+          : const Color(0xFFF0EDF6),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final tokens = context.flowTokens;
@@ -120,7 +132,7 @@ class SettingsScreen extends StatelessWidget {
             children: [
               // ── Fixed Header ─────────────────────────────────────────
               Padding(
-                padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 20.h),
+                padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 14.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -141,7 +153,7 @@ class SettingsScreen extends StatelessWidget {
               Expanded(
                 child: ShaderMask(
                   shaderCallback: (Rect bounds) {
-                    const fadeHeight = 24.0;
+                    const fadeHeight = 20.0;
                     final stop = (fadeHeight / bounds.height).clamp(0.01, 0.12);
                     return LinearGradient(
                       begin: Alignment.topCenter,
@@ -153,7 +165,7 @@ class SettingsScreen extends StatelessWidget {
                   blendMode: BlendMode.dstIn,
                   child: ListView(
                     physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, listBottom),
+                    padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, listBottom),
                     children: [
                       // ── 1. Top Profile Hero Card ─────────────────────────
                       BlocBuilder<AuthBloc, AuthState>(
@@ -187,11 +199,12 @@ class SettingsScreen extends StatelessWidget {
 
                           return Container(
                             decoration: BoxDecoration(
-                              color: tokens.tileLavender,
+                              color: isDark ? tokens.raised : tokens.surface,
                               borderRadius: BorderRadius.circular(24.r),
                               border: isDark
                                   ? Border.all(color: tokens.border, width: 1)
                                   : null,
+                              boxShadow: isDark ? null : tokens.cardShadow,
                             ),
                             child: Material(
                               color: Colors.transparent,
@@ -205,30 +218,23 @@ class SettingsScreen extends StatelessWidget {
                                   ),
                                   child: Row(
                                     children: [
-                                      // Avatar circle with user initial
+                                      // Avatar circle with initial
                                       Container(
                                         width: 50.r,
                                         height: 50.r,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           color: isDark
-                                              ? tokens.raised
-                                              : Colors.white,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: tokens.tileLavenderIcon
-                                                  .withValues(alpha: 0.12),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
+                                              ? tokens.tileLavender
+                                                  .withValues(alpha: 0.35)
+                                              : tokens.tileLavender,
                                         ),
                                         alignment: Alignment.center,
                                         child: Text(
                                           initial,
                                           style: AppUrbanist.body(
                                             color: tokens.tileLavenderIcon,
-                                            fontSize: 22,
+                                            fontSize: 22.sp,
                                             fontWeight: FontWeight.w800,
                                           ),
                                         ),
@@ -248,7 +254,7 @@ class SettingsScreen extends StatelessWidget {
                                               overflow: TextOverflow.ellipsis,
                                               style: AppUrbanist.body(
                                                 color: tokens.text,
-                                                fontSize: 16,
+                                                fontSize: 16.sp,
                                                 fontWeight: FontWeight.w700,
                                               ),
                                             ),
@@ -259,7 +265,7 @@ class SettingsScreen extends StatelessWidget {
                                               overflow: TextOverflow.ellipsis,
                                               style: AppUrbanist.body(
                                                 color: tokens.mutedText,
-                                                fontSize: 13,
+                                                fontSize: 13.sp,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -271,7 +277,8 @@ class SettingsScreen extends StatelessWidget {
 
                                       Icon(
                                         Icons.chevron_right_rounded,
-                                        color: tokens.tileLavenderIcon,
+                                        color: tokens.mutedText
+                                            .withValues(alpha: 0.60),
                                         size: 22.sp,
                                       ),
                                     ],
@@ -283,114 +290,151 @@ class SettingsScreen extends StatelessWidget {
                         },
                       ),
 
-                      SizedBox(height: 20.h),
+                      SizedBox(height: 16.h),
 
-                      // ── 2. Security Section ──────────────────────────────
-                      SettingsSection(
-                        title: 'Security',
+                      // ── 2. 2-Column Bento Grid: Security & Password ──────
+                      Row(
                         children: [
-                          SettingsTile(
-                            icon: Icons.lock_outline_rounded,
-                            iconBg: tokens.tileLavender,
-                            iconColor: tokens.tileLavenderIcon,
-                            title: 'Security',
-                            subtitle: 'Password and account protection',
-                            onTap: () => context.push(AppRoutes.security),
+                          Expanded(
+                            child: SettingsBentoCard(
+                              icon: Icons.lock_outline_rounded,
+                              title: 'Security',
+                              subtitle: 'Account protection',
+                              bgColor: tokens.tileLavender,
+                              iconBg: tokens.tileLavenderIcon,
+                              iconColor: isDark
+                                  ? tokens.background
+                                  : Colors.white,
+                              onTap: () => context.push(AppRoutes.security),
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: SettingsBentoCard(
+                              icon: Icons.key_rounded,
+                              title: 'Password',
+                              subtitle: 'Change password',
+                              bgColor: tokens.tileLavender,
+                              iconBg: tokens.tileLavenderIcon,
+                              iconColor: isDark
+                                  ? tokens.background
+                                  : Colors.white,
+                              onTap: () =>
+                                  context.push(AppRoutes.changePassword),
+                            ),
                           ),
                         ],
                       ),
 
-                      SizedBox(height: 20.h),
+                      SizedBox(height: 16.h),
 
-                      // ── 3. Appearance Section ────────────────────────────
-                      SettingsSection(
-                        title: 'Appearance',
-                        children: [
-                          BlocBuilder<ThemeCubit, ThemeMode>(
-                            builder: (context, themeMode) {
-                              final isThemeDark = themeMode == ThemeMode.dark ||
-                                  (themeMode == ThemeMode.system &&
-                                      MediaQuery.platformBrightnessOf(
-                                              context) ==
-                                          Brightness.dark);
+                      // ── 3. Single Unified Modern List Card ───────────────
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? tokens.raised : tokens.surface,
+                          borderRadius: BorderRadius.circular(24.r),
+                          border: isDark
+                              ? Border.all(color: tokens.border, width: 1)
+                              : null,
+                          boxShadow: isDark ? null : tokens.cardShadow,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24.r),
+                          child: Column(
+                            children: [
+                              // Dark mode tile
+                              BlocBuilder<ThemeCubit, ThemeMode>(
+                                builder: (context, themeMode) {
+                                  final isThemeDark = themeMode ==
+                                          ThemeMode.dark ||
+                                      (themeMode == ThemeMode.system &&
+                                          MediaQuery.platformBrightnessOf(
+                                                  context) ==
+                                              Brightness.dark);
 
-                              final subtitle = themeMode == ThemeMode.system
-                                  ? 'System (${isThemeDark ? 'Dark' : 'Light'})'
-                                  : (isThemeDark ? 'On' : 'Off');
+                                  final subtitle =
+                                      themeMode == ThemeMode.system
+                                          ? 'System'
+                                          : (isThemeDark ? 'On' : 'Off');
 
-                              return SettingsTile(
-                                icon: isThemeDark
-                                    ? Icons.dark_mode_outlined
-                                    : Icons.wb_sunny_outlined,
-                                iconBg: tokens.tileMint,
-                                iconColor: tokens.tileMintIcon,
-                                title: 'Dark mode',
-                                subtitle: subtitle,
-                                trailing: Switch.adaptive(
-                                  value: isThemeDark,
-                                  activeThumbColor: tokens.accent,
-                                  activeTrackColor:
-                                      tokens.accent.withValues(alpha: 0.35),
-                                  inactiveThumbColor: Colors.white,
-                                  inactiveTrackColor: isDark
-                                      ? tokens.field
-                                      : const Color(0xFFE2DFEB),
-                                  onChanged: (val) {
-                                    context.read<ThemeCubit>().setThemeMode(
-                                          val
-                                              ? ThemeMode.dark
-                                              : ThemeMode.light,
-                                        );
-                                  },
-                                ),
+                                  return SettingsTile(
+                                    icon: Icons.nightlight_round,
+                                    iconBg: tokens.tileMintIcon,
+                                    iconColor: isDark
+                                        ? tokens.background
+                                        : Colors.white,
+                                    title: 'Dark mode',
+                                    subtitle: subtitle,
+                                    trailing: Switch.adaptive(
+                                      value: isThemeDark,
+                                      activeThumbColor: tokens.accent,
+                                      activeTrackColor: tokens.accent
+                                          .withValues(alpha: 0.35),
+                                      inactiveThumbColor: Colors.white,
+                                      inactiveTrackColor: isDark
+                                          ? tokens.field
+                                          : const Color(0xFFE2DFEB),
+                                      onChanged: (val) {
+                                        context
+                                            .read<ThemeCubit>()
+                                            .setThemeMode(
+                                              val
+                                                  ? ThemeMode.dark
+                                                  : ThemeMode.light,
+                                            );
+                                      },
+                                    ),
+                                    onTap: () => _showThemeBottomSheet(
+                                        context, themeMode),
+                                  );
+                                },
+                              ),
+
+                              _buildDivider(isDark, tokens),
+
+                              // Notifications tile (no red dot)
+                              SettingsTile(
+                                icon: Icons.notifications_none_rounded,
+                                iconBg: tokens.tileButterIcon,
+                                iconColor: isDark
+                                    ? tokens.background
+                                    : Colors.white,
+                                title: 'Notifications',
+                                subtitle: 'Habit reminders & alerts',
                                 onTap: () =>
-                                    _showThemeBottomSheet(context, themeMode),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+                                    context.push(AppRoutes.notifications),
+                              ),
 
-                      SizedBox(height: 20.h),
+                              _buildDivider(isDark, tokens),
 
-                      // ── 4. Preferences Section ───────────────────────────
-                      SettingsSection(
-                        title: 'Preferences',
-                        children: [
-                          SettingsTile(
-                            icon: Icons.notifications_none_rounded,
-                            iconBg: tokens.tileButter,
-                            iconColor: tokens.tileButterIcon,
-                            title: 'Notifications',
-                            subtitle: 'Manage habit reminders',
-                            onTap: () => context.push(AppRoutes.notifications),
-                          ),
-                        ],
-                      ),
+                              // About HabitFlow tile
+                              SettingsTile(
+                                icon: Icons.info_outline_rounded,
+                                iconBg: tokens.tilePinkIcon,
+                                iconColor: isDark
+                                    ? tokens.background
+                                    : Colors.white,
+                                title: 'About HabitFlow',
+                                subtitle: 'App version & info',
+                                onTap: () => context.push(AppRoutes.about),
+                              ),
 
-                      SizedBox(height: 20.h),
+                              _buildDivider(isDark, tokens),
 
-                      // ── 5. About Section ─────────────────────────────────
-                      SettingsSection(
-                        title: 'About',
-                        children: [
-                          SettingsTile(
-                            icon: Icons.info_outline_rounded,
-                            iconBg: tokens.tilePink,
-                            iconColor: tokens.tilePinkIcon,
-                            title: 'About HabitFlow',
-                            subtitle: 'App version and information',
-                            onTap: () => context.push(AppRoutes.about),
+                              // Privacy tile
+                              SettingsTile(
+                                icon: Icons.privacy_tip_outlined,
+                                iconBg: tokens.tilePinkIcon,
+                                iconColor: isDark
+                                    ? tokens.background
+                                    : Colors.white,
+                                title: 'Privacy',
+                                subtitle: 'Data & security',
+                                onTap: () => context.push(AppRoutes.privacy),
+                              ),
+                            ],
                           ),
-                          SettingsTile(
-                            icon: Icons.privacy_tip_outlined,
-                            iconBg: tokens.tilePink,
-                            iconColor: tokens.tilePinkIcon,
-                            title: 'Privacy',
-                            subtitle: 'How your data is handled',
-                            onTap: () => context.push(AppRoutes.privacy),
-                          ),
-                        ],
+                        ),
                       ),
 
                       SizedBox(height: 32.h),
@@ -403,7 +447,7 @@ class SettingsScreen extends StatelessWidget {
                               'HabitFlow',
                               style: AppUrbanist.body(
                                 color: tokens.mutedText,
-                                fontSize: 13,
+                                fontSize: 13.sp,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -411,8 +455,9 @@ class SettingsScreen extends StatelessWidget {
                             Text(
                               'Version 1.0.0',
                               style: AppUrbanist.body(
-                                color: tokens.mutedText.withValues(alpha: 0.60),
-                                fontSize: 11,
+                                color:
+                                    tokens.mutedText.withValues(alpha: 0.60),
+                                fontSize: 11.sp,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
