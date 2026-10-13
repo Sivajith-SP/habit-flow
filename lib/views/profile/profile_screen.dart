@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -6,12 +8,15 @@ import 'package:go_router/go_router.dart';
 import '../../app/config/service_locator.dart';
 import '../../app/router/app_routes.dart';
 import '../../app/theme/app_colors.dart';
+import '../../app/theme/app_flow_tokens.dart';
 import '../../app/theme/app_radius.dart';
 import '../../app/theme/app_spacing.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../controllers/auth/auth_bloc.dart';
 import '../../controllers/auth/auth_event.dart';
 import '../../controllers/auth/auth_state.dart';
+import '../../controllers/statistics/statistics_bloc.dart';
+import '../../controllers/statistics/statistics_state.dart';
 import '../../repositories/auth/auth_repository.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -23,6 +28,10 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   String? _displayName;
+
+  // ─────────────────────────────────────────────
+  // Dialogs — logic unchanged
+  // ─────────────────────────────────────────────
 
   Future<bool> _showLogoutDialog(BuildContext context) async {
     return await showDialog<bool>(
@@ -88,6 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String currentName,
   ) async {
     String editedName = currentName;
+    final authBloc = context.read<AuthBloc>(); // cache before async gap
 
     final result = await showDialog<String>(
       context: context,
@@ -116,7 +126,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
             onFieldSubmitted: (value) {
               final name = value.trim();
-
               if (name.isNotEmpty) {
                 Navigator.of(dialogContext).pop(name);
               }
@@ -144,9 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             FilledButton(
               onPressed: () {
                 final name = editedName.trim();
-
                 if (name.isEmpty) return;
-
                 Navigator.of(dialogContext).pop(name);
               },
               child: const Text('Save'),
@@ -165,27 +172,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
 
       // Update Firebase through Bloc
-      context.read<AuthBloc>().add(UpdateUserNameRequested(newName));
+      authBloc.add(UpdateUserNameRequested(newName));
     }
   }
+
+  // ─────────────────────────────────────────────
+  // Build
+  // ─────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final authRepository = getIt<AuthRepository>();
+    final tokens = context.flowTokens;
 
     final email = authRepository.currentUserEmail ?? 'No email available';
-
     final userId = authRepository.currentUserId ?? 'Unknown';
 
     final repositoryName = authRepository.currentUserDisplayName?.trim();
-
     final userName =
         _displayName ??
         (repositoryName != null && repositoryName.isNotEmpty
             ? repositoryName
             : 'HabitFlow User');
 
-    final colorScheme = Theme.of(context).colorScheme;
+    // Member since date — derived from Firebase metadata
+    final creationTime =
+        FirebaseAuth.instance.currentUser?.metadata.creationTime;
+    final memberSince =
+        creationTime != null ? _formatMemberSince(creationTime) : null;
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -194,133 +208,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: tokens.background,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
           surfaceTintColor: Colors.transparent,
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: Icon(Icons.arrow_back_rounded, color: colorScheme.onSurface),
+            icon: Icon(Icons.arrow_back_rounded, color: tokens.text),
           ),
           title: Text(
             'Profile',
-            style: AppTextStyles.heading2.copyWith(
-              color: colorScheme.onSurface,
-            ),
+            style: AppUrbanist.sectionTitle(color: tokens.text),
           ),
         ),
         body: SafeArea(
           top: false,
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(AppSpacing.lg),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: AppSpacing.md),
 
-                // Profile Avatar
-                Container(
-                  width: 96.r,
-                  height: 96.r,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.14),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: colorScheme.primary.withValues(alpha: 0.25),
-                      width: 2,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.person_rounded,
-                    size: 46.sp,
-                    color: colorScheme.primary,
-                  ),
-                ),
-
-                SizedBox(height: AppSpacing.md),
-
-                // User name
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        userName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.heading2.copyWith(
-                          color: colorScheme.onSurface,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(width: 8.w),
-
-                    InkWell(
-                      onTap: () {
-                        _showEditNameDialog(context, userName);
-                      },
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                      child: Padding(
-                        padding: EdgeInsets.all(6.r),
-                        child: Icon(
-                          Icons.edit_outlined,
-                          size: 18.sp,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: 4.h),
-
-                Text(
-                  email,
-                  style: AppTextStyles.body.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                // ── Profile Header ───────────────────────────────
+                _ProfileHeader(
+                  userName: userName,
+                  email: email,
+                  memberSince: memberSince,
+                  onEditName: () => _showEditNameDialog(context, userName),
+                  tokens: tokens,
                 ),
 
                 SizedBox(height: AppSpacing.xl),
 
-                _ProfileSection(
-                  title: 'Account Information',
-                  children: [
-                    _ProfileInfoTile(
-                      icon: Icons.email_outlined,
-                      label: 'Email',
-                      value: email,
-                    ),
-                    _ProfileInfoTile(
-                      icon: Icons.badge_outlined,
-                      label: 'User ID',
-                      value: userId,
-                    ),
-                  ],
+                // ── Stats Row ────────────────────────────────────
+                _StatsRow(tokens: tokens),
+
+                SizedBox(height: AppSpacing.lg),
+
+                // ── Section label ────────────────────────────────
+                Padding(
+                  padding: EdgeInsets.only(left: 2.w, bottom: AppSpacing.sm),
+                  child: Text(
+                    'ACCOUNT',
+                    style: AppUrbanist.daysCaption(color: tokens.mutedText),
+                  ),
+                ),
+
+                // ── Account Info Card ────────────────────────────
+                _AccountInfoCard(
+                  email: email,
+                  userId: userId,
+                  tokens: tokens,
                 ),
 
                 SizedBox(height: AppSpacing.md),
 
-                _ProfileSection(
-                  title: '',
-                  children: [
-                    _ActionTile(
-                      icon: Icons.logout_rounded,
-                      title: 'Logout',
-                      subtitle: 'Sign out of your account',
-                      isDestructive: true,
-                      onTap: () async {
-                        final shouldLogout = await _showLogoutDialog(context);
-
-                        if (shouldLogout && context.mounted) {
-                          context.read<AuthBloc>().add(const LogoutRequested());
-                        }
-                      },
-                    ),
-                  ],
+                // ── Logout Card ──────────────────────────────────
+                _LogoutCard(
+                  tokens: tokens,
+                  onTap: () async {
+                    final shouldLogout = await _showLogoutDialog(context);
+                    if (shouldLogout && context.mounted) {
+                      context.read<AuthBloc>().add(const LogoutRequested());
+                    }
+                  },
                 ),
+
+                SizedBox(height: AppSpacing.xl),
               ],
             ),
           ),
@@ -328,168 +287,495 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-}
 
-class _ProfileSection extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-
-  const _ProfileSection({required this.title, required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (title.isNotEmpty) ...[
-          Text(
-            title,
-            style: AppTextStyles.body.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: AppSpacing.sm),
-        ],
-
-        Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.25),
-            ),
-          ),
-          child: Column(children: children),
-        ),
-      ],
-    );
+  String _formatMemberSince(DateTime date) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.year}';
   }
 }
 
-class _ProfileInfoTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
+// ─────────────────────────────────────────────────────────────────────────────
+// Profile Header — flat, centered, no gradient card
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const _ProfileInfoTile({
-    required this.icon,
-    required this.label,
-    required this.value,
+class _ProfileHeader extends StatelessWidget {
+  final String userName;
+  final String email;
+  final String? memberSince;
+  final VoidCallback onEditName;
+  final HabitFlowTokens tokens;
+
+  const _ProfileHeader({
+    required this.userName,
+    required this.email,
+    required this.memberSince,
+    required this.onEditName,
+    required this.tokens,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final initial = userName.trim().isNotEmpty
+        ? userName.trim()[0].toUpperCase()
+        : '?';
 
+    return Center(
+      child: Column(
+        children: [
+          // ── Avatar circle with initial letter ──────────────
+          Container(
+            width: 96.r,
+            height: 96.r,
+            decoration: BoxDecoration(
+              color: tokens.tileLavender,
+              shape: BoxShape.circle,
+              boxShadow: tokens.cardShadow,
+            ),
+            child: Center(
+              child: Text(
+                initial,
+                style: AppUrbanist.body(
+                  color: tokens.tileLavenderIcon,
+                  fontSize: 38.sp,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+
+          SizedBox(height: 14.h),
+
+          // ── Name + edit icon ───────────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  userName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppUrbanist.body(
+                    color: tokens.text,
+                    fontSize: 22.sp,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.w),
+              GestureDetector(
+                onTap: onEditName,
+                child: Padding(
+                  padding: EdgeInsets.all(4.r),
+                  child: Icon(
+                    Icons.edit_outlined,
+                    size: 18.sp,
+                    color: tokens.accent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: 6.h),
+
+          // ── Email ──────────────────────────────────────────
+          Text(
+            email,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppUrbanist.body(
+              color: tokens.mutedText,
+              fontSize: 13.sp,
+            ),
+          ),
+
+          // ── Member since chip (mint green) ─────────────────
+          if (memberSince != null) ...[
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: tokens.tileMint,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.star_rounded,
+                    size: 13.sp,
+                    color: tokens.tileMintIcon,
+                  ),
+                  SizedBox(width: 5.w),
+                  Text(
+                    'Member since $memberSince',
+                    style: AppUrbanist.body(
+                      color: tokens.tileMintIcon,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stats Row
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _StatsRow extends StatelessWidget {
+  final HabitFlowTokens tokens;
+
+  const _StatsRow({required this.tokens});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<StatisticsBloc, StatisticsState>(
+      builder: (context, state) {
+        final String habits;
+        final String completion;
+        final String streak;
+
+        if (state is StatisticsLoaded) {
+          habits = '${state.totalHabits}';
+          final pct = state.monthlyTotal > 0
+              ? ((state.monthlyCompleted / state.monthlyTotal) * 100)
+                    .round()
+                    .toString()
+              : '0';
+          completion = '$pct%';
+          streak = '${state.currentStreak}';
+        } else {
+          habits = '--';
+          completion = '--%';
+          streak = '--';
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                value: habits,
+                label: 'Habits',
+                tokens: tokens,
+              ),
+            ),
+            SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: _StatCard(
+                value: completion,
+                label: 'Completion',
+                tokens: tokens,
+              ),
+            ),
+            SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: _StatCard(
+                value: streak,
+                label: 'Day Streak',
+                tokens: tokens,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String value;
+  final String label;
+  final HabitFlowTokens tokens;
+
+  const _StatCard({
+    required this.value,
+    required this.label,
+    required this.tokens,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 8.w),
+      decoration: BoxDecoration(
+        color: tokens.surface,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: tokens.cardShadow,
+        border: tokens.cardBorder,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            value,
+            style: AppUrbanist.body(
+              color: tokens.text,
+              fontSize: 22.sp,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppUrbanist.daysCaption(color: tokens.mutedText),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Account Info Card
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _AccountInfoCard extends StatelessWidget {
+  final String email;
+  final String userId;
+  final HabitFlowTokens tokens;
+
+  const _AccountInfoCard({
+    required this.email,
+    required this.userId,
+    required this.tokens,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: tokens.surface,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: tokens.cardShadow,
+        border: tokens.cardBorder,
+      ),
+      child: Column(
+        children: [
+          _InfoRow(
+            icon: Icons.email_outlined,
+            label: 'Email',
+            value: email,
+            tokens: tokens,
+          ),
+          Divider(
+            height: 1,
+            thickness: 1,
+            indent: 60.w,
+            endIndent: AppSpacing.md,
+            color: tokens.hairline,
+          ),
+          _InfoRow(
+            icon: Icons.badge_outlined,
+            label: 'User ID',
+            value: userId,
+            tokens: tokens,
+            trailing: _CopyButton(text: userId, tokens: tokens),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final HabitFlowTokens tokens;
+  final Widget? trailing;
+
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.tokens,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(AppSpacing.md),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: 14.h,
+      ),
       child: Row(
         children: [
-          Icon(icon, size: 21.sp, color: colorScheme.primary),
+          // Icon circle
+          Container(
+            width: 38.r,
+            height: 38.r,
+            decoration: BoxDecoration(
+              color: tokens.tileLavender,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 18.sp, color: tokens.tileLavenderIcon),
+          ),
 
           SizedBox(width: AppSpacing.md),
 
+          // Label + value
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
-                  style: AppTextStyles.caption.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                  style: AppUrbanist.daysCaption(color: tokens.mutedText),
                 ),
                 SizedBox(height: 3.h),
                 Text(
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.body.copyWith(
-                    color: colorScheme.onSurface,
+                  style: AppUrbanist.body(
+                    color: tokens.text,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
           ),
+
+          if (trailing != null) ...[
+            SizedBox(width: AppSpacing.sm),
+            trailing!,
+          ],
         ],
       ),
     );
   }
 }
 
-class _ActionTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final bool isDestructive;
-  final VoidCallback onTap;
+class _CopyButton extends StatefulWidget {
+  final String text;
+  final HabitFlowTokens tokens;
 
-  const _ActionTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.isDestructive = false,
-  });
+  const _CopyButton({required this.text, required this.tokens});
+
+  @override
+  State<_CopyButton> createState() => _CopyButtonState();
+}
+
+class _CopyButtonState extends State<_CopyButton> {
+  bool _copied = false;
+
+  Future<void> _copy() async {
+    await Clipboard.setData(ClipboardData(text: widget.text));
+    if (!mounted) return;
+    setState(() => _copied = true);
+    await Future.delayed(const Duration(seconds: 2));
+    if (mounted) setState(() => _copied = false);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: _copy,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 250),
+        child: Icon(
+          _copied ? Icons.check_rounded : Icons.copy_rounded,
+          key: ValueKey(_copied),
+          size: 18.sp,
+          color: _copied ? AppColors.success : widget.tokens.mutedText,
+        ),
+      ),
+    );
+  }
+}
 
-    final color = isDestructive ? AppColors.error : colorScheme.primary;
+// ─────────────────────────────────────────────────────────────────────────────
+// Logout Card
+// ─────────────────────────────────────────────────────────────────────────────
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            children: [
-              Container(
-                width: 44.r,
-                height: 44.r,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
+class _LogoutCard extends StatelessWidget {
+  final HabitFlowTokens tokens;
+  final VoidCallback onTap;
+
+  const _LogoutCard({required this.tokens, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: tokens.surface,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: tokens.cardShadow,
+        border: tokens.cardBorder,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20.r),
+          onTap: onTap,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: 14.h,
+            ),
+            child: Row(
+              children: [
+                // Icon circle
+                Container(
+                  width: 38.r,
+                  height: 38.r,
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.logout_rounded,
+                    size: 18.sp,
+                    color: AppColors.error,
+                  ),
                 ),
-                child: Icon(icon, color: color, size: 22.sp),
-              ),
 
-              SizedBox(width: AppSpacing.md),
+                SizedBox(width: AppSpacing.md),
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: AppTextStyles.body.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Log out',
+                        style: AppUrbanist.body(
+                          color: AppColors.error,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      subtitle,
-                      style: AppTextStyles.caption.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      SizedBox(height: 3.h),
+                      Text(
+                        'Sign out of your account',
+                        style: AppUrbanist.daysCaption(
+                          color: tokens.mutedText,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
-              Icon(
-                Icons.chevron_right_rounded,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ],
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: tokens.mutedText,
+                  size: 20.sp,
+                ),
+              ],
+            ),
           ),
         ),
       ),

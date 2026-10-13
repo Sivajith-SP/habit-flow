@@ -53,8 +53,14 @@ class AppRouter {
       ),
       GoRoute(
         path: AppRoutes.profile,
-        builder: (context, state) => BlocProvider.value(
-          value: getIt<AuthBloc>(),
+        builder: (context, state) => MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: getIt<AuthBloc>()),
+            BlocProvider(
+              create: (_) =>
+                  getIt<StatisticsBloc>()..add(const LoadStatistics()),
+            ),
+          ],
           child: const ProfileScreen(),
         ),
       ),
