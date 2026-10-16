@@ -36,7 +36,7 @@ class StatisticsScreen extends StatelessWidget {
           children: [
             // ── Header ───────────────────────────────────────────────────────
             Padding(
-              padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 20.h),
+              padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 10.h),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -88,7 +88,7 @@ class StatisticsScreen extends StatelessWidget {
                   // Fade the top 24 logical pixels of the scroll area to
                   // transparent — content that scrolls into this zone
                   // dissolves rather than being hard-clipped.
-                  const fadeHeight = 24.0;
+                  const fadeHeight = 14.0;
                   final stop =
                       (fadeHeight / bounds.height).clamp(0.01, 0.12);
                   return LinearGradient(
@@ -144,7 +144,7 @@ class _StatisticsBody extends StatelessWidget {
 
     return ListView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, listBottom),
+      padding: EdgeInsets.fromLTRB(20.w, 14.h, 20.w, listBottom),
       children: [
         // 1. Monthly ring card (includes streak badge inside)
         MonthlyProgressCard(
@@ -191,7 +191,7 @@ class _LoadingSkeleton extends StatelessWidget {
 
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, listBottom),
+      padding: EdgeInsets.fromLTRB(20.w, 14.h, 20.w, listBottom),
       children: [
         // Monthly card skeleton
         Container(

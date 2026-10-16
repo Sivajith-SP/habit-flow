@@ -26,11 +26,9 @@ class SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.flowTokens;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final effectiveIconBg = iconBg ?? tokens.tileLavenderIcon;
-    final effectiveIconColor =
-        iconColor ?? (isDark ? tokens.background : Colors.white);
+    final effectiveIconBg = iconBg ?? tokens.tileLavender;
+    final effectiveIconColor = iconColor ?? tokens.tileLavenderIcon;
 
     return Material(
       color: Colors.transparent,
@@ -50,15 +48,6 @@ class SettingsTile extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: effectiveIconBg,
                   shape: BoxShape.circle,
-                  boxShadow: isDark
-                      ? null
-                      : [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
                 ),
                 alignment: Alignment.center,
                 child: Icon(

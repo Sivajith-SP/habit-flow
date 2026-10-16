@@ -95,7 +95,7 @@ void main() {
 
   group('SettingsScreen Widget Tests', () {
     testWidgets(
-        'renders grid for Security & Password and single card for list without red dot',
+        'renders purple gradient profile card and unified list card without red dot',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(360, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -129,16 +129,20 @@ void main() {
       expect(find.text('PREFERENCES'), findsNothing);
       expect(find.text('ABOUT'), findsNothing);
 
-      // Verify duplicate Profile grid tile is removed
+      // Verify Password bento card is removed
       expect(find.text('Profile'), findsNothing);
+      expect(find.text('Password'), findsNothing);
+      expect(find.text('Change password'), findsNothing);
 
-      // Grid Row: Security & Password
+      // New profile card copy
+      expect(find.text('MEMBER PROFILE'), findsOneWidget);
+      expect(find.text('HABITFLOW ID'), findsOneWidget);
+
+      // Unified List Card items: Security, Dark mode, Notifications, About, Privacy
       expect(find.text('Security'), findsOneWidget);
       expect(find.text('Account protection'), findsOneWidget);
-      expect(find.text('Password'), findsOneWidget);
-      expect(find.text('Change password'), findsOneWidget);
 
-      // Unified List Card items: Dark mode, Notifications, About, Privacy
+      // Remaining Unified List Card items
       expect(find.text('Dark mode'), findsOneWidget);
       expect(find.text('Notifications'), findsOneWidget);
       expect(find.text('Habit reminders & alerts'), findsOneWidget);
