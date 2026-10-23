@@ -132,7 +132,7 @@ class SettingsScreen extends StatelessWidget {
 
                           final year = DateTime.now().year.toString();
                           final idSuffix = _habitflowId(userId);
-                          final hfId = 'HF \u00B7 $year \u00B7 $idSuffix';
+                          final hfId = 'HF · $year · $idSuffix';
 
                           return MemberProfileCard(
                             fullName: fullName,
@@ -159,15 +159,14 @@ class SettingsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(24.r),
                           child: Column(
                             children: [
-                              // Security tile
+                              // Security tile — opens bottom sheet via GoRouter
                               SettingsTile(
                                 icon: Icons.lock_outline_rounded,
                                 iconBg: tokens.tileLavender,
                                 iconColor: tokens.tileLavenderIcon,
                                 title: 'Security',
                                 subtitle: 'Account protection',
-                                onTap: () =>
-                                    context.push(AppRoutes.security),
+                                onTap: () => context.push(AppRoutes.security),
                               ),
 
                               _buildDivider(isDark, tokens),

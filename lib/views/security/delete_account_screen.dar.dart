@@ -9,19 +9,53 @@ import '../../app/theme/app_spacing.dart';
 import '../../controllers/auth/auth_bloc.dart';
 import '../../controllers/auth/auth_event.dart';
 import '../../controllers/auth/auth_state.dart';
+import 'change_password_screen.dart';
 
-class DeleteAccountScreen extends StatefulWidget {
+// =============================================================================
+// Standalone Delete Account Screen
+// =============================================================================
+
+class DeleteAccountScreen extends StatelessWidget {
   const DeleteAccountScreen({super.key});
 
   @override
-  State<DeleteAccountScreen> createState() => _DeleteAccountScreenState();
+  Widget build(BuildContext context) {
+    final tokens = context.flowTokens;
+
+    return Scaffold(
+      backgroundColor: tokens.background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 36.h),
+          child: DeleteAccountView(
+            onBack: () => Navigator.maybePop(context),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
+// =============================================================================
+// Reusable Delete Account View (Used in bottom sheet & standalone screen)
+// =============================================================================
+
+class DeleteAccountView extends StatefulWidget {
+  final VoidCallback? onBack;
+
+  const DeleteAccountView({
+    super.key,
+    this.onBack,
+  });
+
+  @override
+  State<DeleteAccountView> createState() => _DeleteAccountViewState();
+}
+
+class _DeleteAccountViewState extends State<DeleteAccountView> {
   final _formKey = GlobalKey<FormState>();
-
   final _passwordController = TextEditingController();
-
   bool _obscurePassword = true;
 
   @override
@@ -82,10 +116,10 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                 Navigator.pop(dialogContext);
 
                 context.read<AuthBloc>().add(
-                  DeleteAccountRequested(
-                    password: _passwordController.text.trim(),
-                  ),
-                );
+                      DeleteAccountRequested(
+                        password: _passwordController.text.trim(),
+                      ),
+                    );
               },
               child: Text(
                 'Delete Account',
@@ -113,230 +147,181 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
         }
 
         if (state is AuthFailure) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
-      child: Scaffold(
-        backgroundColor: tokens.background,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          surfaceTintColor: Colors.transparent,
-          leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Icon(
-              Icons.arrow_back_rounded,
-              color: tokens.text,
-            ),
-          ),
-          title: Text(
-            'Delete Account',
-            style: AppUrbanist.sectionTitle(color: tokens.text),
-          ),
-        ),
-        body: SafeArea(
-          top: false,
-          child: Form(
-            key: _formKey,
-            child: ListView(
-              physics: const BouncingScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(
-                20.w,
-                12.h,
-                20.w,
-                100.h,
-              ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Back button + Title row
+            Row(
               children: [
-                // ── Warning Banner ────────────────────────────────────────
-                Container(
-                  padding: EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? tokens.tilePink.withValues(alpha: 0.45)
-                        : AppColors.error.withValues(alpha: 0.07),
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border(
-                      left: BorderSide(color: AppColors.error, width: 3),
-                    ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.warning_amber_rounded,
-                        color: AppColors.error,
-                        size: 20.sp,
+                if (widget.onBack != null) ...[
+                  GestureDetector(
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      _passwordController.clear();
+                      _formKey.currentState?.reset();
+                      widget.onBack!();
+                    },
+                    child: Container(
+                      width: 36.r,
+                      height: 36.r,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? tokens.border.withValues(alpha: 0.5)
+                            : tokens.background,
+                        shape: BoxShape.circle,
                       ),
-                      SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          'Deleting your account is permanent. Your account cannot be recovered after deletion.',
-                          style: AppUrbanist.body(
-                            color: tokens.text,
-                            fontSize: 13.sp,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: AppSpacing.xl),
-
-                // ── Confirm Password Section ──────────────────────────────
-                Text(
-                  'Confirm your password',
-                  style: AppUrbanist.habitName(color: tokens.text),
-                ),
-
-                SizedBox(height: 6.h),
-
-                Text(
-                  'Enter your current password to confirm that you want to delete your account.',
-                  style: AppUrbanist.body(
-                    color: tokens.mutedText,
-                    fontSize: 13.sp,
-                  ),
-                ),
-
-                SizedBox(height: AppSpacing.lg),
-
-                // ── Password Field ────────────────────────────────────────
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Password',
-                      style: AppUrbanist.body(
-                        color: tokens.mutedText,
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: 6.h),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Enter your password';
-                        }
-                        return null;
-                      },
-                      style: AppUrbanist.body(
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.arrow_back_rounded,
                         color: tokens.text,
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Enter your password',
-                        hintStyle: AppUrbanist.body(
-                          color: tokens.mutedText.withValues(alpha: 0.60),
-                          fontSize: 14.sp,
-                        ),
-                        filled: true,
-                        fillColor: tokens.field,
-                        prefixIcon: Icon(
-                          Icons.lock_outline_rounded,
-                          color: tokens.mutedText,
-                          size: 20.sp,
-                        ),
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: tokens.mutedText,
-                            size: 20.sp,
-                          ),
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16.w,
-                          vertical: 16.h,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14.r),
-                          borderSide: BorderSide(color: tokens.hairline),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14.r),
-                          borderSide: BorderSide(color: tokens.hairline),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14.r),
-                          borderSide: const BorderSide(
-                            color: AppColors.error,
-                            width: 1.5,
-                          ),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14.r),
-                          borderSide:
-                              const BorderSide(color: AppColors.error),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14.r),
-                          borderSide: const BorderSide(
-                            color: AppColors.error,
-                            width: 1.5,
-                          ),
-                        ),
+                        size: 18.sp,
                       ),
                     ),
-                  ],
-                ),
-
-                SizedBox(height: AppSpacing.xl),
-
-                // ── Delete Account Button ─────────────────────────────────
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    final isLoading = state is AuthLoading;
-
-                    return SizedBox(
-                      width: double.infinity,
-                      height: AppSpacing.buttonHeight,
-                      child: FilledButton(
-                        onPressed: isLoading ? null : _deleteAccount,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.error,
-                          disabledBackgroundColor:
-                              AppColors.error.withValues(alpha: 0.4),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.pill),
-                          ),
-                        ),
-                        child: isLoading
-                            ? SizedBox(
-                                width: 22.r,
-                                height: 22.r,
-                                child: const CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text(
-                                'Delete Account',
-                                style: AppUrbanist.saveButton(
-                                  color: Colors.white,
-                                ),
-                              ),
-                      ),
-                    );
-                  },
+                  ),
+                  SizedBox(width: 12.w),
+                ],
+                Text(
+                  'Delete Account',
+                  style: AppUrbanist.sectionTitle(color: AppColors.error),
                 ),
               ],
             ),
-          ),
+            SizedBox(height: 4.h),
+            Padding(
+              padding: EdgeInsets.only(left: widget.onBack != null ? 48.w : 0),
+              child: Text(
+                'This action is permanent and cannot be undone.',
+                style: AppUrbanist.body(
+                  color: tokens.mutedText,
+                  fontSize: 13.sp,
+                ),
+              ),
+            ),
+
+            SizedBox(height: AppSpacing.lg),
+
+            // Warning banner
+            Container(
+              padding: EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? tokens.tilePink.withValues(alpha: 0.45)
+                    : AppColors.error.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: const Border(
+                  left: BorderSide(color: AppColors.error, width: 3),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: AppColors.error,
+                    size: 20.sp,
+                  ),
+                  SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'Deleting your account is permanent. Your account cannot be recovered after deletion.',
+                      style: AppUrbanist.body(
+                        color: tokens.text,
+                        fontSize: 13.sp,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: AppSpacing.xl),
+
+            // Confirm password heading
+            Text(
+              'Confirm your password',
+              style: AppUrbanist.habitName(color: tokens.text),
+            ),
+            SizedBox(height: 6.h),
+            Text(
+              'Enter your current password to confirm that you want to delete your account.',
+              style: AppUrbanist.body(
+                color: tokens.mutedText,
+                fontSize: 13.sp,
+              ),
+            ),
+
+            SizedBox(height: AppSpacing.lg),
+
+            // Password field (reusing PasswordField)
+            PasswordField(
+              controller: _passwordController,
+              label: 'Password',
+              hint: 'Enter your password',
+              obscureText: _obscurePassword,
+              tokens: tokens,
+              isDark: isDark,
+              accentColor: AppColors.error,
+              onToggleVisibility: () {
+                setState(() {
+                  _obscurePassword = !_obscurePassword;
+                });
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Enter your password';
+                }
+                return null;
+              },
+            ),
+
+            SizedBox(height: AppSpacing.xl),
+
+            // Delete Account button
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                final isLoading = state is AuthLoading;
+
+                return SizedBox(
+                  width: double.infinity,
+                  height: AppSpacing.buttonHeight,
+                  child: FilledButton(
+                    onPressed: isLoading ? null : _deleteAccount,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                      disabledBackgroundColor:
+                          AppColors.error.withValues(alpha: 0.4),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                      ),
+                    ),
+                    child: isLoading
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            'Delete Account',
+                            style: AppUrbanist.saveButton(
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

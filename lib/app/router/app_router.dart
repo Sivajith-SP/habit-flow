@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:habitflow/app/config/service_locator.dart';
@@ -66,9 +67,27 @@ class AppRouter {
       ),
       GoRoute(
         path: AppRoutes.security,
-        builder: (context, state) => BlocProvider.value(
-          value: getIt<AuthBloc>(),
-          child: const SecurityScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          opaque: false,
+          barrierDismissible: true,
+          barrierColor: Colors.black.withValues(alpha: 0.45),
+          child: BlocProvider.value(
+            value: getIt<AuthBloc>(),
+            child: const SecurityScreen(),
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 1),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            );
+          },
         ),
       ),
       GoRoute(
