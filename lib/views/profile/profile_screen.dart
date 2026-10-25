@@ -11,7 +11,6 @@ import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_flow_tokens.dart';
 import '../../app/theme/app_radius.dart';
 import '../../app/theme/app_spacing.dart';
-import '../../app/theme/app_text_styles.dart';
 import '../../controllers/auth/auth_bloc.dart';
 import '../../controllers/auth/auth_event.dart';
 import '../../controllers/auth/auth_state.dart';
@@ -34,58 +33,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ─────────────────────────────────────────────
 
   Future<bool> _showLogoutDialog(BuildContext context) async {
+    final tokens = context.flowTokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return await showDialog<bool>(
           context: context,
           builder: (dialogContext) {
-            final colorScheme = Theme.of(dialogContext).colorScheme;
-
-            return AlertDialog(
-              backgroundColor: colorScheme.surface,
+            return Dialog(
+              backgroundColor: isDark ? tokens.raised : tokens.surface,
               surfaceTintColor: Colors.transparent,
+              elevation: isDark ? 0 : 8,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.lg),
+                borderRadius: BorderRadius.circular(24.r),
+                side: isDark
+                    ? BorderSide(color: tokens.border, width: 1)
+                    : BorderSide.none,
               ),
-              title: Text(
-                'Logout?',
-                style: AppTextStyles.heading2.copyWith(
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              content: Text(
-                'Are you sure you want to sign out of your HabitFlow account?',
-                style: AppTextStyles.body.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(dialogContext, false);
-                  },
-                  child: Text(
-                    'Cancel',
-                    style: AppTextStyles.body.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, 20.h),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Top circular icon badge
+                    Container(
+                      width: 52.r,
+                      height: 52.r,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? tokens.tilePink
+                            : AppColors.error.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.logout_rounded,
+                        color: isDark ? tokens.tilePinkIcon : AppColors.error,
+                        size: 24.sp,
+                      ),
                     ),
-                  ),
-                ),
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.error,
-                  ),
-                  onPressed: () {
-                    Navigator.pop(dialogContext, true);
-                  },
-                  child: Text(
-                    'Logout',
-                    style: AppTextStyles.body.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                    SizedBox(height: AppSpacing.md),
+                    // Title
+                    Text(
+                      'Log out?',
+                      textAlign: TextAlign.center,
+                      style: AppUrbanist.sectionTitle(color: tokens.text),
                     ),
-                  ),
+                    SizedBox(height: 6.h),
+                    // Content
+                    Text(
+                      'Are you sure you want to sign out of your HabitFlow account?',
+                      textAlign: TextAlign.center,
+                      style: AppUrbanist.body(
+                        color: tokens.mutedText,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                    SizedBox(height: AppSpacing.xl),
+                    // Action Buttons Row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: isDark
+                                  ? tokens.surface
+                                  : tokens.background,
+                              side: BorderSide(color: tokens.hairline),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.pill),
+                              ),
+                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                            ),
+                            onPressed: () =>
+                                Navigator.pop(dialogContext, false),
+                            child: Text(
+                              'Cancel',
+                              style: AppUrbanist.body(
+                                color: tokens.text,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.error,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.pill),
+                              ),
+                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                            ),
+                            onPressed: () =>
+                                Navigator.pop(dialogContext, true),
+                            child: Text(
+                              'Log out',
+                              style: AppUrbanist.body(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
+              ),
             );
           },
         ) ??
@@ -98,67 +158,156 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ) async {
     String editedName = currentName;
     final authBloc = context.read<AuthBloc>(); // cache before async gap
+    final tokens = context.flowTokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final result = await showDialog<String>(
       context: context,
       builder: (dialogContext) {
-        final colorScheme = Theme.of(dialogContext).colorScheme;
-
-        return AlertDialog(
-          backgroundColor: colorScheme.surface,
+        return Dialog(
+          backgroundColor: isDark ? tokens.raised : tokens.surface,
           surfaceTintColor: Colors.transparent,
+          elevation: isDark ? 0 : 8,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+            borderRadius: BorderRadius.circular(24.r),
+            side: isDark
+                ? BorderSide(color: tokens.border, width: 1)
+                : BorderSide.none,
           ),
-          title: Text(
-            'Edit Name',
-            style: AppTextStyles.heading2.copyWith(
-              color: colorScheme.onSurface,
-            ),
-          ),
-          content: TextFormField(
-            initialValue: currentName,
-            autofocus: true,
-            textCapitalization: TextCapitalization.words,
-            style: AppTextStyles.body.copyWith(color: colorScheme.onSurface),
-            onChanged: (value) {
-              editedName = value;
-            },
-            onFieldSubmitted: (value) {
-              final name = value.trim();
-              if (name.isNotEmpty) {
-                Navigator.of(dialogContext).pop(name);
-              }
-            },
-            decoration: InputDecoration(
-              hintText: 'Enter your name',
-              hintStyle: AppTextStyles.body.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-              child: Text(
-                'Cancel',
-                style: AppTextStyles.body.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, 20.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 40.r,
+                      height: 40.r,
+                      decoration: BoxDecoration(
+                        color: tokens.tileLavender,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.edit_rounded,
+                        color: tokens.tileLavenderIcon,
+                        size: 20.sp,
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Text(
+                        'Edit Name',
+                        style: AppUrbanist.sectionTitle(color: tokens.text),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+                SizedBox(height: AppSpacing.md),
+                TextFormField(
+                  initialValue: currentName,
+                  autofocus: true,
+                  textCapitalization: TextCapitalization.words,
+                  style: AppUrbanist.body(
+                    color: tokens.text,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  onChanged: (value) {
+                    editedName = value;
+                  },
+                  onFieldSubmitted: (value) {
+                    final name = value.trim();
+                    if (name.isNotEmpty) {
+                      Navigator.of(dialogContext).pop(name);
+                    }
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Enter your name',
+                    hintStyle: AppUrbanist.body(
+                      color: tokens.mutedText.withValues(alpha: 0.60),
+                      fontSize: 14.sp,
+                    ),
+                    filled: true,
+                    fillColor: tokens.field,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 14.h,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14.r),
+                      borderSide: BorderSide(color: tokens.hairline),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14.r),
+                      borderSide: BorderSide(color: tokens.hairline),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14.r),
+                      borderSide:
+                          BorderSide(color: tokens.accent, width: 1.5),
+                    ),
+                  ),
+                ),
+                SizedBox(height: AppSpacing.xl),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor:
+                              isDark ? tokens.surface : tokens.background,
+                          side: BorderSide(color: tokens.hairline),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppRadius.pill),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 12.h),
+                        ),
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        child: Text(
+                          'Cancel',
+                          style: AppUrbanist.body(
+                            color: tokens.text,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14.sp,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: tokens.accent,
+                          foregroundColor: tokens.onAccent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppRadius.pill),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 12.h),
+                        ),
+                        onPressed: () {
+                          final name = editedName.trim();
+                          if (name.isEmpty) return;
+                          Navigator.of(dialogContext).pop(name);
+                        },
+                        child: Text(
+                          'Save',
+                          style: AppUrbanist.body(
+                            color: tokens.onAccent,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14.sp,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            FilledButton(
-              onPressed: () {
-                final name = editedName.trim();
-                if (name.isEmpty) return;
-                Navigator.of(dialogContext).pop(name);
-              },
-              child: const Text('Save'),
-            ),
-          ],
+          ),
         );
       },
     );
@@ -196,8 +345,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : 'HabitFlow User');
 
     // Member since date — derived from Firebase metadata
-    final creationTime =
-        FirebaseAuth.instance.currentUser?.metadata.creationTime;
+    DateTime? creationTime;
+    try {
+      creationTime = FirebaseAuth.instance.currentUser?.metadata.creationTime;
+    } catch (_) {
+      creationTime = null;
+    }
     final memberSince =
         creationTime != null ? _formatMemberSince(creationTime) : null;
 

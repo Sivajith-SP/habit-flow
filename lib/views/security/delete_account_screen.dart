@@ -9,6 +9,7 @@ import '../../app/theme/app_spacing.dart';
 import '../../controllers/auth/auth_bloc.dart';
 import '../../controllers/auth/auth_event.dart';
 import '../../controllers/auth/auth_state.dart';
+import '../common/app_snack_bar.dart';
 import 'change_password_screen.dart';
 
 // =============================================================================
@@ -147,8 +148,10 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
         }
 
         if (state is AuthFailure) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(state.message)));
+          AppSnackBar.showError(
+            context,
+            message: state.message,
+          );
         }
       },
       child: Form(
@@ -187,9 +190,11 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
                   ),
                   SizedBox(width: 12.w),
                 ],
-                Text(
-                  'Delete Account',
-                  style: AppUrbanist.sectionTitle(color: AppColors.error),
+                Expanded(
+                  child: Text(
+                    'Delete Account',
+                    style: AppUrbanist.sectionTitle(color: AppColors.error),
+                  ),
                 ),
               ],
             ),

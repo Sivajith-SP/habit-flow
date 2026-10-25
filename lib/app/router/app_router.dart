@@ -19,7 +19,7 @@ import '../../views/notifications/notifications_screen.dart';
 import '../../views/privacy/privacy_screen.dart';
 import '../../views/profile/profile_screen.dart';
 import '../../views/security/change_password_screen.dart';
-import '../../views/security/delete_account_screen.dar.dart';
+import '../../views/security/delete_account_screen.dart';
 import '../../views/security/security_screen.dart';
 import '../../views/splash/splash_screen.dart';
 import 'app_routes.dart';

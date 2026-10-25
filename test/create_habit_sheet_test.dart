@@ -38,11 +38,6 @@ class _FakeHabitRepository implements HabitRepository {
   @override
   Future<void> archiveHabit(String id) async {}
 
-  @override
-  Future<void> unarchiveHabit(String id) async {}
-
-  @override
-  Future<List<HabitModel>> getArchivedHabits() async => [];
 
   @override
   Future<HabitModel?> getHabitById(String habitId) async {

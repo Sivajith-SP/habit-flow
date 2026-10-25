@@ -7,8 +7,9 @@ import '../../app/theme/app_flow_tokens.dart';
 import '../../app/theme/app_spacing.dart';
 import '../../controllers/auth/auth_bloc.dart';
 import '../../controllers/auth/auth_state.dart';
+import '../common/app_snack_bar.dart';
 import 'change_password_screen.dart';
-import 'delete_account_screen.dar.dart';
+import 'delete_account_screen.dart';
 
 // =============================================================================
 // Security Route Screen / Modal Route (Used by GoRouter for AppRoutes.security)
@@ -63,6 +64,12 @@ void showSecuritySheet(BuildContext context) {
 // Security Bottom Sheet — adaptive height + in-sheet animated navigation
 // =============================================================================
 
+enum _SecuritySheetView {
+  main,
+  changePassword,
+  deleteAccount,
+}
+
 class SecurityBottomSheet extends StatefulWidget {
   const SecurityBottomSheet({super.key});
 
@@ -71,7 +78,7 @@ class SecurityBottomSheet extends StatefulWidget {
 }
 
 class _SecurityBottomSheetState extends State<SecurityBottomSheet> {
-  bool _showDeleteView = false;
+  _SecuritySheetView _currentView = _SecuritySheetView.main;
 
   @override
   Widget build(BuildContext context) {
@@ -87,16 +94,24 @@ class _SecurityBottomSheetState extends State<SecurityBottomSheet> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Password changed successfully.')),
+          AppSnackBar.showSuccess(
+            context,
+            message: 'Password changed successfully.',
           );
+          if (_currentView == _SecuritySheetView.changePassword) {
+            setState(() {
+              _currentView = _SecuritySheetView.main;
+            });
+          }
         }
         if (state is AuthInitial) {
           Navigator.of(context).maybePop();
         }
         if (state is AuthFailure) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(state.message)));
+          AppSnackBar.showError(
+            context,
+            message: state.message,
+          );
         }
       },
       child: AnimatedPadding(
@@ -155,15 +170,15 @@ class _SecurityBottomSheetState extends State<SecurityBottomSheet> {
                                   child: child,
                                 ),
                               ),
-                              if (currentChild != null) currentChild,
+                              ?currentChild,
                             ],
                           );
                         },
                         transitionBuilder: (child, animation) {
-                          final isDeleteView =
-                              child.key == const ValueKey('delete');
+                          final isSubView =
+                              child.key != const ValueKey('main');
                           final slideIn = Tween<Offset>(
-                            begin: Offset(isDeleteView ? 1.0 : -0.25, 0.0),
+                            begin: Offset(isSubView ? 1.0 : -0.25, 0.0),
                             end: Offset.zero,
                           ).animate(CurvedAnimation(
                             parent: animation,
@@ -181,20 +196,36 @@ class _SecurityBottomSheetState extends State<SecurityBottomSheet> {
                             ),
                           );
                         },
-                        child: _showDeleteView
-                            ? SingleChildScrollView(
-                                key: const ValueKey('delete'),
-                                physics: const BouncingScrollPhysics(),
-                                keyboardDismissBehavior:
-                                    ScrollViewKeyboardDismissBehavior.onDrag,
-                                padding:
-                                    EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 36.h),
-                                child: DeleteAccountView(
-                                  onBack: () => setState(
-                                      () => _showDeleteView = false),
-                                ),
-                              )
-                            : _buildMainView(tokens, isDark),
+                        child: switch (_currentView) {
+                          _SecuritySheetView.changePassword =>
+                            SingleChildScrollView(
+                              key: const ValueKey('change_password'),
+                              physics: const BouncingScrollPhysics(),
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.onDrag,
+                              padding:
+                                  EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 36.h),
+                              child: ChangePasswordView(
+                                onBack: () => setState(() =>
+                                    _currentView = _SecuritySheetView.main),
+                              ),
+                            ),
+                          _SecuritySheetView.deleteAccount =>
+                            SingleChildScrollView(
+                              key: const ValueKey('delete'),
+                              physics: const BouncingScrollPhysics(),
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.onDrag,
+                              padding:
+                                  EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 36.h),
+                              child: DeleteAccountView(
+                                onBack: () => setState(() =>
+                                    _currentView = _SecuritySheetView.main),
+                              ),
+                            ),
+                          _SecuritySheetView.main =>
+                            _buildMainView(tokens, isDark),
+                        },
                       ),
                     ),
                   ),
@@ -238,10 +269,27 @@ class _SecurityBottomSheetState extends State<SecurityBottomSheet> {
             ),
           ),
 
-          // Expandable Change Password card from change_password_screen.dart
-          ExpandableChangePasswordCard(
-            tokens: tokens,
-            isDark: isDark,
+          // Change Password tile → slides in ChangePasswordView
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? tokens.raised : tokens.surface,
+              borderRadius: BorderRadius.circular(20.r),
+              border:
+                  isDark ? Border.all(color: tokens.border, width: 1) : null,
+              boxShadow: isDark ? null : tokens.cardShadow,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20.r),
+              child: SecurityTile(
+                icon: Icons.lock_outline_rounded,
+                iconBg: tokens.tileLavender,
+                iconColor: tokens.tileLavenderIcon,
+                title: 'Change Password',
+                subtitle: 'Update your login password',
+                onTap: () => setState(
+                    () => _currentView = _SecuritySheetView.changePassword),
+              ),
+            ),
           ),
 
           SizedBox(height: AppSpacing.xl),
@@ -274,7 +322,8 @@ class _SecurityBottomSheetState extends State<SecurityBottomSheet> {
                 title: 'Delete Account',
                 subtitle: 'Opens a dedicated confirmation screen',
                 titleColor: AppColors.error,
-                onTap: () => setState(() => _showDeleteView = true),
+                onTap: () => setState(
+                    () => _currentView = _SecuritySheetView.deleteAccount),
               ),
             ),
           ),
