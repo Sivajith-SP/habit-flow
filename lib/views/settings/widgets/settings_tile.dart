@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../app/theme/app_flow_tokens.dart';
+import '../../../app/theme/app_spacing.dart';
 
 class SettingsTile extends StatelessWidget {
   final IconData icon;
@@ -36,8 +37,8 @@ class SettingsTile extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: 16.w,
-            vertical: 14.h,
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.gap14,
           ),
           child: Row(
             children: [
@@ -57,7 +58,7 @@ class SettingsTile extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(width: 14.w),
+              SizedBox(width: AppSpacing.gap14),
 
               // Title and subtitle
               Expanded(
@@ -73,7 +74,7 @@ class SettingsTile extends StatelessWidget {
                       ),
                     ),
                     if (subtitle != null) ...[
-                      SizedBox(height: 2.h),
+                      SizedBox(height: AppSpacing.xxs),
                       Text(
                         subtitle!,
                         maxLines: 1,
@@ -89,7 +90,7 @@ class SettingsTile extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(width: 8.w),
+              SizedBox(width: AppSpacing.sm),
 
               // Trailing widget or subtle chevron
               trailing ??

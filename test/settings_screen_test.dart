@@ -8,6 +8,7 @@ import 'package:habitflow/controllers/auth/auth_bloc.dart';
 import 'package:habitflow/controllers/theme/theme_cubit.dart';
 import 'package:habitflow/repositories/auth/auth_repository.dart';
 import 'package:habitflow/views/settings/settings_screen.dart';
+import 'package:habitflow/views/settings/widgets/appearance_tile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeAuthRepository implements AuthRepository {
@@ -138,12 +139,14 @@ void main() {
       expect(find.text('MEMBER PROFILE'), findsOneWidget);
       expect(find.text('HABITFLOW ID'), findsOneWidget);
 
-      // Unified List Card items: Security, Dark mode, Notifications, About, Privacy
+      // Unified List Card items: Security, Appearance, Notifications, About, Privacy
       expect(find.text('Security'), findsOneWidget);
       expect(find.text('Account protection'), findsOneWidget);
 
       // Remaining Unified List Card items
-      expect(find.text('Dark mode'), findsOneWidget);
+      expect(find.text('Appearance'), findsOneWidget);
+      expect(find.text('System default'), findsOneWidget);
+      expect(find.byType(AppearanceTile), findsOneWidget);
       expect(find.text('Notifications'), findsOneWidget);
       expect(find.text('Habit reminders & alerts'), findsOneWidget);
       expect(find.text('About HabitFlow'), findsOneWidget);
@@ -182,7 +185,7 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('renders in dark mode without overflow and toggles switch',
+    testWidgets('AppearanceTile expands on tap and updates theme mode and icons',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(360, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -203,14 +206,59 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+      expect(find.byType(AppearanceTile), findsOneWidget);
+      expect(find.text('System default'), findsOneWidget);
 
-      // Find switch inside Dark mode tile and tap it
-      final switchFinder = find.byType(Switch);
-      expect(switchFinder, findsOneWidget);
-      await tester.tap(switchFinder);
+      // Initially collapsed: theme option buttons are not yet in the widget tree
+      expect(find.byTooltip('Light theme'), findsNothing);
+
+      // Tap Appearance tile header to expand
+      await tester.tap(find.text('Appearance'));
       await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
+      // Theme options are now visible
+      expect(find.byTooltip('Light theme'), findsOneWidget);
+      expect(find.byTooltip('Dark theme'), findsOneWidget);
+      expect(find.byTooltip('System theme'), findsOneWidget);
+
+      // Verify contrasting section background in dark mode
+      final containerFinder = find.ancestor(
+        of: find.byTooltip('Light theme'),
+        matching: find.byType(Container),
+      ).first;
+      final containerWidget = tester.widget<Container>(containerFinder);
+      final decoration = containerWidget.decoration as BoxDecoration;
+      expect(decoration.color, HabitFlowTokens.dark.background);
+      expect(decoration.border, isNotNull);
+
+      // Tap Light mode option
+      await tester.tap(find.byTooltip('Light theme'));
+      await tester.pumpAndSettle();
+      expect(themeCubit.state, ThemeMode.light);
+      expect(find.text('Light'), findsWidgets);
+      // Leading tile icon updated to sun
+      expect(find.byIcon(Icons.wb_sunny_outlined), findsWidgets);
+
+      // Tap Dark mode option
+      await tester.tap(find.byTooltip('Dark theme'));
+      await tester.pumpAndSettle();
+      expect(themeCubit.state, ThemeMode.dark);
+      expect(find.text('Dark'), findsWidgets);
+      // Leading tile icon updated to moon
+      expect(find.byIcon(Icons.nightlight_outlined), findsWidgets);
+
+      // Tap System mode option
+      await tester.tap(find.byTooltip('System theme'));
+      await tester.pumpAndSettle();
+      expect(themeCubit.state, ThemeMode.system);
+      expect(find.text('System default'), findsOneWidget);
+      // Leading tile icon updated to monitor
+      expect(find.byIcon(Icons.desktop_windows_outlined), findsWidgets);
+
+      // Tap Appearance tile header again to collapse
+      await tester.tap(find.text('Appearance'));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Light theme'), findsNothing);
     });
   });
 }

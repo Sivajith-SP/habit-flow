@@ -6,10 +6,11 @@ import 'package:go_router/go_router.dart';
 import '../../app/config/service_locator.dart';
 import '../../app/router/app_routes.dart';
 import '../../app/theme/app_flow_tokens.dart';
+import '../../app/theme/app_spacing.dart';
 import '../../controllers/auth/auth_bloc.dart';
 import '../../controllers/auth/auth_state.dart';
-import '../../controllers/theme/theme_cubit.dart';
 import '../../repositories/auth/auth_repository.dart';
+import 'widgets/appearance_tile.dart';
 import 'widgets/member_profile_card.dart';
 import 'widgets/settings_tile.dart';
 
@@ -22,8 +23,8 @@ class SettingsScreen extends StatelessWidget {
     return Divider(
       height: 1,
       thickness: 1,
-      indent: 72.w,
-      endIndent: 16.w,
+      indent: AppSpacing.dividerIndent,
+      endIndent: AppSpacing.md,
       color: isDark
           ? tokens.border.withValues(alpha: 0.5)
           : const Color(0xFFF0EDF6),
@@ -65,7 +66,12 @@ class SettingsScreen extends StatelessWidget {
             children: [
               // ── Fixed Header ──────────────────────────────────────────────
               Padding(
-                padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 10.h),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenPadding,
+                  AppSpacing.gap12,
+                  AppSpacing.screenPadding,
+                  AppSpacing.gap10,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -73,7 +79,7 @@ class SettingsScreen extends StatelessWidget {
                       'Settings',
                       style: AppUrbanist.sheetTitle(color: tokens.text),
                     ),
-                    SizedBox(height: 2.h),
+                    SizedBox(height: AppSpacing.xxs),
                     Text(
                       'Manage your app preferences',
                       style: AppUrbanist.body(color: tokens.mutedText),
@@ -99,7 +105,12 @@ class SettingsScreen extends StatelessWidget {
                   blendMode: BlendMode.dstIn,
                   child: ListView(
                     physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.fromLTRB(20.w, 14.h, 20.w, listBottom),
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.screenPadding,
+                      AppSpacing.gap14,
+                      AppSpacing.screenPadding,
+                      listBottom,
+                    ),
                     children: [
                       // ── 1. Member Profile Card ────────────────────────────
                       BlocBuilder<AuthBloc, AuthState>(
@@ -143,7 +154,7 @@ class SettingsScreen extends StatelessWidget {
                         },
                       ),
 
-                      SizedBox(height: 18.h),
+                      SizedBox(height: AppSpacing.gap26),
 
                       // ── 2. Unified List Card ──────────────────────────────
                       Container(
@@ -171,42 +182,8 @@ class SettingsScreen extends StatelessWidget {
 
                               _buildDivider(isDark, tokens),
 
-                              // Dark mode tile
-                              BlocBuilder<ThemeCubit, ThemeMode>(
-                                builder: (context, themeMode) {
-                                  final isThemeDark =
-                                      themeMode == ThemeMode.dark ||
-                                          (themeMode == ThemeMode.system &&
-                                              MediaQuery.platformBrightnessOf(
-                                                      context) ==
-                                                  Brightness.dark);
-
-                                  return SettingsTile(
-                                    icon: Icons.nightlight_round,
-                                    iconBg: tokens.tileMint,
-                                    iconColor: tokens.tileMintIcon,
-                                    title: 'Dark mode',
-                                    subtitle: isThemeDark ? 'On' : 'Off',
-                                    trailing: Switch.adaptive(
-                                      value: isThemeDark,
-                                      activeThumbColor: tokens.accent,
-                                      activeTrackColor: tokens.accent
-                                          .withValues(alpha: 0.35),
-                                      inactiveThumbColor: Colors.white,
-                                      inactiveTrackColor: isDark
-                                          ? tokens.field
-                                          : const Color(0xFFE2DFEB),
-                                      onChanged: (val) {
-                                        context.read<ThemeCubit>().setThemeMode(
-                                              val
-                                                  ? ThemeMode.dark
-                                                  : ThemeMode.light,
-                                            );
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
+                              // Appearance expandable tile
+                              const AppearanceTile(),
 
                               _buildDivider(isDark, tokens),
 
@@ -249,7 +226,7 @@ class SettingsScreen extends StatelessWidget {
                         ),
                       ),
 
-                      SizedBox(height: 36.h),
+                      SizedBox(height: AppSpacing.gap36),
 
                       // ── App Name & Version Footer ─────────────────────────
                       Center(
