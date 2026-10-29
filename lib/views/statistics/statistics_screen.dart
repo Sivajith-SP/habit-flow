@@ -5,13 +5,21 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../app/theme/app_flow_tokens.dart';
 import '../../controllers/statistics/statistics_bloc.dart';
 import '../../controllers/statistics/statistics_state.dart';
+import '../common/frosted_scroll_header.dart';
 import 'widgets/monthly_progress_card.dart';
 import 'widgets/statistics_overview_card.dart';
 import 'widgets/streak_card.dart';
 import 'widgets/weekly_progress_card.dart';
 
-class StatisticsScreen extends StatelessWidget {
+class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
+
+  @override
+  State<StatisticsScreen> createState() => _StatisticsScreenState();
+}
+
+class _StatisticsScreenState extends State<StatisticsScreen> {
+  final _scrollController = ScrollController();
 
   String _monthLabel() {
     const months = [
@@ -23,106 +31,123 @@ class StatisticsScreen extends StatelessWidget {
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final tokens = context.flowTokens;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return ColoredBox(
-      color: tokens.background,
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final systemBottom = MediaQuery.of(context).viewPadding.bottom;
+    final listBottom = 74.h + 24.h + systemBottom + 16.h;
+
+    // Header metrics: 12.h + ~30.h + 2.h + ~18.h + 10.h => ~72.h
+    // plus gap14: 14.h => 86.h
+    final headerContentHeight = 72.h;
+    final listTopPadding = statusBarHeight + headerContentHeight + 14.h;
+
+    Widget headerWidget = SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 10.h),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            // ── Header ───────────────────────────────────────────────────────
-            Padding(
-              padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 10.h),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Statistics',
-                          style: AppUrbanist.sheetTitle(color: tokens.text),
-                        ),
-                        SizedBox(height: 2.h),
-                        Text(
-                          'Track your habit progress',
-                          style: AppUrbanist.body(color: tokens.mutedText),
-                        ),
-                      ],
-                    ),
+                  Text(
+                    'Statistics',
+                    style: AppUrbanist.sheetTitle(color: tokens.text),
                   ),
-                  // Month pill badge
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 14.w, vertical: 7.h),
-                    decoration: BoxDecoration(
-                      color: isDark ? tokens.raised : tokens.surface,
-                      borderRadius: BorderRadius.circular(50.r),
-                      boxShadow: isDark ? null : tokens.cardShadow,
-                      border: isDark
-                          ? Border.all(color: tokens.border, width: 1)
-                          : null,
-                    ),
-                    child: Text(
-                      _monthLabel(),
-                      style: AppUrbanist.body(
-                        color: tokens.text,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    'Track your habit progress',
+                    style: AppUrbanist.body(color: tokens.mutedText),
                   ),
                 ],
               ),
             ),
-
-            // ── Scrollable body with top-edge alpha fade ──────────────────────
-            Expanded(
-              child: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  // Fade the top 24 logical pixels of the scroll area to
-                  // transparent — content that scrolls into this zone
-                  // dissolves rather than being hard-clipped.
-                  const fadeHeight = 14.0;
-                  final stop =
-                      (fadeHeight / bounds.height).clamp(0.01, 0.12);
-                  return LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: const [Colors.transparent, Colors.black],
-                    stops: [0.0, stop],
-                  ).createShader(bounds);
-                },
-                blendMode: BlendMode.dstIn,
-                child: BlocBuilder<StatisticsBloc, StatisticsState>(
-                  builder: (context, state) {
-                    if (state is StatisticsLoading ||
-                        state is StatisticsInitial) {
-                      return const _LoadingSkeleton();
-                    }
-                    if (state is StatisticsError) {
-                      return Center(
-                        child: Text(
-                          state.message,
-                          style: AppUrbanist.body(color: tokens.mutedText),
-                        ),
-                      );
-                    }
-                    if (state is StatisticsLoaded) {
-                      return _StatisticsBody(state: state);
-                    }
-                    return const SizedBox.shrink();
-                  },
+            // Month pill badge
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
+              decoration: BoxDecoration(
+                color: isDark ? tokens.raised : tokens.surface,
+                borderRadius: BorderRadius.circular(50.r),
+                boxShadow: isDark ? null : tokens.cardShadow,
+                border: isDark
+                    ? Border.all(color: tokens.border, width: 1)
+                    : null,
+              ),
+              child: Text(
+                _monthLabel(),
+                style: AppUrbanist.body(
+                  color: tokens.text,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+
+    return ColoredBox(
+      color: tokens.background,
+      child: Stack(
+        children: [
+          // ── Scrollable body ────────────────────────────────────────
+          BlocBuilder<StatisticsBloc, StatisticsState>(
+            builder: (context, state) {
+              if (state is StatisticsLoading ||
+                  state is StatisticsInitial) {
+                return _LoadingSkeleton(
+                  scrollController: _scrollController,
+                  topPadding: listTopPadding,
+                  bottomPadding: listBottom,
+                );
+              }
+              if (state is StatisticsError) {
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: listTopPadding),
+                    child: Text(
+                      state.message,
+                      style: AppUrbanist.body(color: tokens.mutedText),
+                    ),
+                  ),
+                );
+              }
+              if (state is StatisticsLoaded) {
+                return _StatisticsBody(
+                  state: state,
+                  scrollController: _scrollController,
+                  topPadding: listTopPadding,
+                  bottomPadding: listBottom,
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+
+          // ── Frosted glass header overlay ─────────────────────────────
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: FrostedScrollHeader(
+              controller: _scrollController,
+              child: headerWidget,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -134,17 +159,23 @@ class StatisticsScreen extends StatelessWidget {
 
 class _StatisticsBody extends StatelessWidget {
   final StatisticsLoaded state;
+  final ScrollController scrollController;
+  final double topPadding;
+  final double bottomPadding;
 
-  const _StatisticsBody({required this.state});
+  const _StatisticsBody({
+    required this.state,
+    required this.scrollController,
+    required this.topPadding,
+    required this.bottomPadding,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final systemBottom = MediaQuery.of(context).viewPadding.bottom;
-    final listBottom = 74.h + 24.h + systemBottom + 16.h;
-
     return ListView(
+      controller: scrollController,
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(20.w, 14.h, 20.w, listBottom),
+      padding: EdgeInsets.fromLTRB(20.w, topPadding, 20.w, bottomPadding),
       children: [
         // 1. Monthly ring card (includes streak badge inside)
         MonthlyProgressCard(
@@ -181,17 +212,24 @@ class _StatisticsBody extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _LoadingSkeleton extends StatelessWidget {
-  const _LoadingSkeleton();
+  final ScrollController scrollController;
+  final double topPadding;
+  final double bottomPadding;
+
+  const _LoadingSkeleton({
+    required this.scrollController,
+    required this.topPadding,
+    required this.bottomPadding,
+  });
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.flowTokens;
-    final systemBottom = MediaQuery.of(context).viewPadding.bottom;
-    final listBottom = 74.h + 24.h + systemBottom + 16.h;
 
     return ListView(
+      controller: scrollController,
       physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(20.w, 14.h, 20.w, listBottom),
+      padding: EdgeInsets.fromLTRB(20.w, topPadding, 20.w, bottomPadding),
       children: [
         // Monthly card skeleton
         Container(
@@ -240,4 +278,3 @@ class _LoadingSkeleton extends StatelessWidget {
     );
   }
 }
-

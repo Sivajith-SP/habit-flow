@@ -333,6 +333,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final authRepository = getIt<AuthRepository>();
     final tokens = context.flowTokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final email = authRepository.currentUserEmail ?? 'No email available';
     final userId = authRepository.currentUserId ?? 'Unknown';
@@ -362,21 +363,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
       child: Scaffold(
         backgroundColor: tokens.background,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          surfaceTintColor: Colors.transparent,
-          leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Icon(Icons.arrow_back_rounded, color: tokens.text),
-          ),
-          title: Text(
-            'Profile',
-            style: AppUrbanist.sectionTitle(color: tokens.text),
-          ),
-        ),
         body: SafeArea(
-          top: false,
+          bottom: false,
           child: SingleChildScrollView(
             padding: EdgeInsets.symmetric(
               horizontal: AppSpacing.md,
@@ -385,9 +373,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: AppSpacing.md),
+                // ── Inline header — back arrow + title ──────────
+                Padding(
+                  padding: EdgeInsets.only(top: AppSpacing.gap12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 36.r,
+                          height: 36.r,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? tokens.border.withValues(alpha: 0.5)
+                                : tokens.surface,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isDark ? tokens.border : tokens.hairline,
+                              width: 1,
+                            ),
+                            boxShadow: isDark
+                                ? null
+                                : [
+                                    BoxShadow(
+                                      color: const Color(0xFF5B43B5)
+                                          .withValues(alpha: 0.08),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.arrow_back_rounded,
+                            color: tokens.text,
+                            size: 18.sp,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Profile',
+                              style:
+                                  AppUrbanist.sectionTitle(color: tokens.text),
+                            ),
+                            SizedBox(height: 2.h),
+                            Text(
+                              'Manage your account and preferences',
+                              style: AppUrbanist.body(
+                                color: tokens.mutedText,
+                                fontSize: 13.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-                // ── Profile Header ───────────────────────────────
+                SizedBox(height: AppSpacing.xl),
+
+
                 _ProfileHeader(
                   userName: userName,
                   email: email,
