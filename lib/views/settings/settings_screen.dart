@@ -11,6 +11,7 @@ import '../../controllers/auth/auth_bloc.dart';
 import '../../controllers/auth/auth_state.dart';
 import '../../repositories/auth/auth_repository.dart';
 import '../common/frosted_scroll_header.dart';
+import '../notifications/notifications_screen.dart';
 import 'widgets/appearance_tile.dart';
 import 'widgets/member_profile_card.dart';
 import 'widgets/settings_tile.dart';
@@ -195,15 +196,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                         _buildDivider(isDark, tokens),
 
-                        // Notifications tile
+                        // Notifications tile – opens bottom sheet
                         SettingsTile(
                           icon: Icons.notifications_none_rounded,
                           iconBg: tokens.tileButter,
                           iconColor: tokens.tileButterIcon,
                           title: 'Notifications',
                           subtitle: 'Habit reminders & alerts',
-                          onTap: () =>
-                              context.push(AppRoutes.notifications),
+                          onTap: () => showNotificationsSheet(context),
                         ),
 
                         _buildDivider(isDark, tokens),
