@@ -291,9 +291,9 @@ class _DrumRollPicker extends StatelessWidget {
             },
           ),
 
-          SizedBox(width: 20.w),
+          SizedBox(width: 22.w),
 
-          // ── Horizontal AM / PM Capsule Toggle ────────────────────────────
+          // ── Vertical AM / PM Capsule Toggle ──────────────────────────────
           _AmPmCapsule(
             isAm: isAm,
             tokens: tokens,
@@ -343,7 +343,7 @@ class _WheelColumn extends StatelessWidget {
 }
 
 // =============================================================================
-// _AmPmCapsule – Horizontal [ AM | PM ] toggle
+// _AmPmCapsule – Vertical [ AM / PM ] toggle
 // =============================================================================
 
 class _AmPmCapsule extends StatelessWidget {
@@ -362,12 +362,13 @@ class _AmPmCapsule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(4.r),
+      padding: EdgeInsets.all(5.r),
       decoration: BoxDecoration(
         color: isDark ? tokens.surface : const Color(0xFFF1EEF8),
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(20.r),
+        border: isDark ? Border.all(color: tokens.border, width: 1) : null,
       ),
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           _CapsuleItem(
@@ -376,6 +377,7 @@ class _AmPmCapsule extends StatelessWidget {
             tokens: tokens,
             onTap: () => onChanged(true),
           ),
+          SizedBox(height: 4.h),
           _CapsuleItem(
             label: 'PM',
             selected: !isAm,
@@ -409,20 +411,18 @@ class _CapsuleItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
-        padding: EdgeInsets.symmetric(
-          horizontal: 14.w,
-          vertical: 9.h,
-        ),
+        width: 72.w,
+        height: 44.h,
         decoration: BoxDecoration(
           color: selected ? tokens.accent : Colors.transparent,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(16.r),
         ),
         alignment: Alignment.center,
         child: Text(
           label,
           style: AppUrbanist.body(
             color: selected ? tokens.onAccent : tokens.mutedText,
-            fontSize: 13.sp,
+            fontSize: 14.5.sp,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
           ),
         ),
