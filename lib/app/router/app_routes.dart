@@ -13,4 +13,5 @@ class AppRoutes {
   static const notifications = '/notifications';
   static const about = '/about';
   static const privacy = '/privacy';
+  static const notificationHistory = '/notification-history';
 }

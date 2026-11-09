@@ -26,12 +26,17 @@ class HabitsLoaded extends HabitsState {
 
   final int currentStreak;
 
+  final List<int> weekDailyCompletions;
+  final List<int> weekDailyTotals;
+
   const HabitsLoaded({
     required this.habits,
     required this.completedToday,
     required this.totalHabits,
     required this.weekProgress,
     required this.currentStreak,
+    this.weekDailyCompletions = const [],
+    this.weekDailyTotals = const [],
   });
 
   @override
@@ -41,6 +46,8 @@ class HabitsLoaded extends HabitsState {
     totalHabits,
     weekProgress,
     currentStreak,
+    weekDailyCompletions,
+    weekDailyTotals,
   ];
 }
 

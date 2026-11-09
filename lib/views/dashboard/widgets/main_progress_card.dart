@@ -54,14 +54,34 @@ class _MainProgressCardState extends State<MainProgressCard> {
     super.initState();
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
-    _selectedDay = _today;
+    _selectedDay = widget.selectedDayNotifier.value;
+    widget.selectedDayNotifier.addListener(_onNotifierChanged);
+  }
+
+  void _onNotifierChanged() {
+    if (!mounted) return;
+    if (!_isSameDay(_selectedDay, widget.selectedDayNotifier.value)) {
+      setState(() {
+        _selectedDay = widget.selectedDayNotifier.value;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.selectedDayNotifier.removeListener(_onNotifierChanged);
+    super.dispose();
   }
 
   bool get _isTodaySelected => _isSameDay(_selectedDay, _today);
+  bool get _isYesterdaySelected =>
+      _isSameDay(_selectedDay, _today.subtract(const Duration(days: 1)));
 
   List<WeekDayData> _buildWeekDays(HabitsLoaded loaded) {
     final monday = _mondayOf(_today);
     final weekProgress = loaded.weekProgress;
+    final dailyCompletions = loaded.weekDailyCompletions;
+    final dailyTotals = loaded.weekDailyTotals;
 
     return List.generate(7, (i) {
       final date = monday.add(Duration(days: i));
@@ -77,9 +97,14 @@ class _MainProgressCardState extends State<MainProgressCard> {
         return WeekDayData(date: date, doneCount: 0, totalCount: 0);
       }
       final dayIdx = date.weekday - 1;
-      final done =
-          dayIdx < weekProgress.length && weekProgress[dayIdx] ? 1 : 0;
-      return WeekDayData(date: date, doneCount: done, totalCount: 1);
+      final done = (dayIdx < dailyCompletions.length)
+          ? dailyCompletions[dayIdx]
+          : (dayIdx < weekProgress.length && weekProgress[dayIdx] ? 1 : 0);
+      final total = (dayIdx < dailyTotals.length && dailyTotals[dayIdx] > 0)
+          ? dailyTotals[dayIdx]
+          : (done > 0 ? done : loaded.totalHabits);
+
+      return WeekDayData(date: date, doneCount: done, totalCount: total);
     });
   }
 
@@ -88,14 +113,33 @@ class _MainProgressCardState extends State<MainProgressCard> {
       return (done: loaded.completedToday, total: loaded.totalHabits);
     }
     final dayIdx = _selectedDay.weekday - 1;
+    final dailyCompletions = loaded.weekDailyCompletions;
+    final dailyTotals = loaded.weekDailyTotals;
+
+    if (dayIdx >= 0 &&
+        dayIdx < dailyCompletions.length &&
+        dayIdx < dailyTotals.length) {
+      final done = dailyCompletions[dayIdx];
+      final total = dailyTotals[dayIdx] > 0
+          ? dailyTotals[dayIdx]
+          : (done > 0 ? done : loaded.totalHabits);
+      return (done: done, total: total);
+    }
+
     final wasCompleted =
-        dayIdx < loaded.weekProgress.length && loaded.weekProgress[dayIdx];
-    return (done: wasCompleted ? 1 : 0, total: 1);
+        dayIdx >= 0 &&
+        dayIdx < loaded.weekProgress.length &&
+        loaded.weekProgress[dayIdx];
+    return (
+      done: wasCompleted ? loaded.totalHabits : 0,
+      total: loaded.totalHabits,
+    );
   }
 
   String _cardTitle() {
     if (_isTodaySelected) return "Today's progress";
-    return _weekdayFull[_selectedDay.weekday - 1];
+    if (_isYesterdaySelected) return "Yesterday's progress";
+    return "${_weekdayFull[_selectedDay.weekday - 1]}'s progress";
   }
 
   /// Only shown for past days as a subtle sub-label.
@@ -304,9 +348,9 @@ class _StatusChip extends StatelessWidget {
     if (allDone) {
       label = 'Perfect day';
     } else if (isPastDay) {
-      label = '$remaining missed';
+      label = remaining > 0 ? '$remaining missed' : 'Rest day';
     } else {
-      label = '$remaining left';
+      label = remaining > 0 ? '$remaining left' : 'All done';
     }
 
     return Container(

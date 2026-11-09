@@ -143,9 +143,9 @@ class _AboutScreenState extends State<AboutScreen> {
 
               SizedBox(height: AppSpacing.gap26),
 
-              // ── 2. App Information ────────────────────────────────────
+              // ── 2. Details ────────────────────────────────────────────
               _AboutSection(
-                label: 'App Information',
+                label: 'Details',
                 isDark: isDark,
                 tokens: tokens,
                 divider: _buildDivider(isDark, tokens),
@@ -155,74 +155,34 @@ class _AboutScreenState extends State<AboutScreen> {
                     iconBg: tokens.tileLavender,
                     iconColor: tokens.tileLavenderIcon,
                     title: 'Version',
-                    subtitle: 'App version',
+                    subtitle: 'Current release',
                     value: '1.0.0',
                   ),
                   _AboutTile(
                     icon: Icons.phone_android_rounded,
-                    iconBg: tokens.tileLavender,
-                    iconColor: tokens.tileLavenderIcon,
-                    title: 'Platform',
-                    subtitle: 'Device platform',
-                    value: 'Android',
-                  ),
-                ],
-              ),
-
-              SizedBox(height: AppSpacing.gap26),
-
-              // ── 3. Technology ─────────────────────────────────────────
-              _AboutSection(
-                label: 'Technology',
-                isDark: isDark,
-                tokens: tokens,
-                divider: _buildDivider(isDark, tokens),
-                children: [
-                  _AboutTile(
-                    icon: Icons.flutter_dash_rounded,
                     iconBg: tokens.tileMint,
                     iconColor: tokens.tileMintIcon,
+                    title: 'Platform',
+                    subtitle: 'Running on Android',
+                    value: 'Android',
+                  ),
+                  _AboutTile(
+                    icon: Icons.flutter_dash_rounded,
+                    iconBg: tokens.tileButter,
+                    iconColor: tokens.tileButterIcon,
                     title: 'Built with',
-                    subtitle: 'UI framework',
+                    subtitle: 'Cross-platform SDK',
                     value: 'Flutter',
                   ),
                   _AboutTile(
                     icon: Icons.cloud_outlined,
-                    iconBg: tokens.tileButter,
-                    iconColor: tokens.tileButterIcon,
+                    iconBg: tokens.tilePink,
+                    iconColor: tokens.tilePinkIcon,
                     title: 'Backend',
-                    subtitle: 'Cloud & auth',
+                    subtitle: 'Auth & real-time sync',
                     value: 'Firebase',
                   ),
                 ],
-              ),
-
-              SizedBox(height: AppSpacing.gap36),
-
-              // ── App Name & Version Footer ─────────────────────────────
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'HabitFlow',
-                      style: AppUrbanist.body(
-                        color: tokens.text,
-                        fontSize: 13.5.sp,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: 3.h),
-                    Text(
-                      'Version 1.0.0',
-                      style: AppUrbanist.body(
-                        color: tokens.mutedText,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ],
           ),

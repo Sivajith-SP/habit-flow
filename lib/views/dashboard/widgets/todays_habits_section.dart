@@ -96,7 +96,7 @@ class TodaysHabitsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Section Header: "Today's habits" (22 / w800) + "See all" (mutedText, w600)
+        // Section Header: "Today's habits" (22 / w800)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -109,25 +109,25 @@ class TodaysHabitsSection extends StatelessWidget {
                 color: tokens.text,
               ),
             ),
-            Semantics(
-              button: true,
-              label: 'See all habits',
-              child: GestureDetector(
-                onTap: () {},
-                behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 2.w),
-                  child: Text(
-                    'See all',
-                    style: GoogleFonts.urbanist(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                      color: tokens.mutedText,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            // Semantics(
+            //   button: true,
+            //   label: 'See all habits',
+            //   child: GestureDetector(
+            //     onTap: () {},
+            //     behavior: HitTestBehavior.opaque,
+            //     child: Padding(
+            //       padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 2.w),
+            //       child: Text(
+            //         'See all',
+            //         style: GoogleFonts.urbanist(
+            //           fontSize: 14.sp,
+            //           fontWeight: FontWeight.w600,
+            //           color: tokens.mutedText,
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
 

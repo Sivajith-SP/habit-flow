@@ -133,7 +133,7 @@ class _DashboardHeaderState extends State<DashboardHeader>
                   child: InkWell(
                     onTap: widget.onNotificationsTap ??
                         () {
-                          context.push(AppRoutes.notifications);
+                          context.push(AppRoutes.notificationHistory);
                         },
                     borderRadius: BorderRadius.circular(999),
                     child: Container(

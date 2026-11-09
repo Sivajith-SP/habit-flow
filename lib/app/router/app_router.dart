@@ -15,6 +15,7 @@ import '../../controllers/statistics/statistics_event.dart';
 import '../../views/about/about_screen.dart';
 import '../../views/auth/login_screen.dart';
 import '../../views/auth/register_screen.dart';
+import '../../views/notifications/notification_history_screen.dart';
 import '../../views/notifications/notifications_screen.dart';
 import '../../views/privacy/privacy_screen.dart';
 import '../../views/profile/profile_screen.dart';
@@ -115,6 +116,10 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.about,
         builder: (context, state) => const AboutScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.notificationHistory,
+        builder: (context, state) => const NotificationHistoryScreen(),
       ),
       GoRoute(
         path: AppRoutes.privacy,

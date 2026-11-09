@@ -183,4 +183,9 @@ class NotificationService {
       );
     }
   }
+
+  /// Returns all currently scheduled (pending) notification requests.
+  Future<List<PendingNotificationRequest>> getPendingNotifications() async {
+    return _notifications.pendingNotificationRequests();
+  }
 }

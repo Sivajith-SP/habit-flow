@@ -58,6 +58,10 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
 
       final weekProgress = await _completionRepository.getCurrentWeekProgress();
       final currentStreak = await _completionRepository.getCurrentStreak();
+      final weekDailyCompletions =
+          await _completionRepository.getCurrentWeekDailyCompletions();
+      final weekDailyTotals =
+          await _completionRepository.getCurrentWeekDailyTotals();
 
       emit(
         HabitsLoaded(
@@ -66,6 +70,8 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
           totalHabits: todaysTotalCount,
           weekProgress: weekProgress,
           currentStreak: currentStreak,
+          weekDailyCompletions: weekDailyCompletions,
+          weekDailyTotals: weekDailyTotals,
         ),
       );
     } catch (e) {

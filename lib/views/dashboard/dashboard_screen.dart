@@ -13,6 +13,7 @@ import '../../controllers/habits/habits_event.dart';
 import '../../controllers/habits/habits_state.dart';
 import '../../repositories/auth/auth_repository.dart';
 import 'widgets/add_habit_bottom_sheet.dart';
+import 'widgets/confetti_overlay.dart';
 import 'widgets/dashboard_header.dart';
 import 'widgets/empty_habits_state.dart';
 import 'widgets/habits_loading_state.dart';
@@ -28,6 +29,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   String? _selectedHabitId;
+  final GlobalKey<ConfettiOverlayState> _confettiKey = GlobalKey<ConfettiOverlayState>();
 
   /// Exposed to the habits section below so it can react to past-day
   /// selection (show a summary instead of editable habits).
@@ -51,12 +53,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final tokens = context.flowTokens;
 
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthInitial) {
-          context.go(AppRoutes.login);
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is AuthInitial) {
+              context.go(AppRoutes.login);
+            }
+          },
+        ),
+        BlocListener<HabitsBloc, HabitsState>(
+          listenWhen: (previous, current) {
+            if (previous is HabitsLoaded && current is HabitsLoaded) {
+              final prevComplete = previous.totalHabits > 0 &&
+                  previous.completedToday >= previous.totalHabits;
+              final currComplete = current.totalHabits > 0 &&
+                  current.completedToday >= current.totalHabits;
+              return !prevComplete && currComplete;
+            }
+            return false;
+          },
+          listener: (context, state) {
+            _confettiKey.currentState?.blast(tokens);
+          },
+        ),
+      ],
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () {
@@ -70,64 +91,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: tokens.background,
           child: SafeArea(
             bottom: false,
-            child: BlocBuilder<HabitsBloc, HabitsState>(
-              builder: (context, habitsState) {
-                // Extract metrics from HabitsState
-                final int completedToday =
-                    habitsState is HabitsLoaded ? habitsState.completedToday : 0;
-                final int totalHabits =
-                    habitsState is HabitsLoaded ? habitsState.totalHabits : 0;
+            child: Stack(
+              children: [
+                BlocBuilder<HabitsBloc, HabitsState>(
+                  builder: (context, habitsState) {
+                    // Extract metrics from HabitsState
+                    final int completedToday =
+                        habitsState is HabitsLoaded ? habitsState.completedToday : 0;
+                    final int totalHabits =
+                        habitsState is HabitsLoaded ? habitsState.totalHabits : 0;
 
-                return ListView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 140.h),
-                  children: [
-                    // 1. Top Bar & 2. Greeting
-                    BlocBuilder<AuthBloc, AuthState>(
-                      builder: (context, authState) {
-                        final authRepository = getIt<AuthRepository>();
-                        final repositoryName =
-                            authRepository.currentUserDisplayName?.trim();
+                    return ListView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 140.h),
+                      children: [
+                        // 1. Top Bar & 2. Greeting
+                        BlocBuilder<AuthBloc, AuthState>(
+                          builder: (context, authState) {
+                            final authRepository = getIt<AuthRepository>();
+                            final repositoryName =
+                                authRepository.currentUserDisplayName?.trim();
 
-                        String fullName = 'Sivajith';
-                        if (authState is AuthSuccess &&
-                            authState.userName.trim().isNotEmpty) {
-                          fullName = authState.userName.trim();
-                        } else if (repositoryName != null &&
-                            repositoryName.isNotEmpty) {
-                          fullName = repositoryName;
-                        }
+                            String fullName = 'Sivajith';
+                            if (authState is AuthSuccess &&
+                                authState.userName.trim().isNotEmpty) {
+                              fullName = authState.userName.trim();
+                            } else if (repositoryName != null &&
+                                repositoryName.isNotEmpty) {
+                              fullName = repositoryName;
+                            }
 
-                        // Extract only the first word (first name)
-                        final parts = fullName.split(RegExp(r'\s+'));
-                        final userName =
-                            (parts.isNotEmpty && parts.first.isNotEmpty)
-                                ? parts.first
-                                : 'Sivajith';
+                            // Extract only the first word (first name)
+                            final parts = fullName.split(RegExp(r'\s+'));
+                            final userName =
+                                (parts.isNotEmpty && parts.first.isNotEmpty)
+                                    ? parts.first
+                                    : 'Sivajith';
 
-                        return DashboardHeader(
-                          userName: userName,
-                          completedHabits: completedToday,
-                          totalHabits: totalHabits,
-                        );
-                      },
-                    ),
+                            return DashboardHeader(
+                              userName: userName,
+                              completedHabits: completedToday,
+                              totalHabits: totalHabits,
+                            );
+                          },
+                        ),
 
-                    SizedBox(height: 20.h),
+                        SizedBox(height: 20.h),
 
-                    // 3. MainProgressCard (replaces ProgressCard + StatTilesRow)
-                    MainProgressCard(
-                      habitsState: habitsState,
-                      selectedDayNotifier: _selectedDayNotifier,
-                    ),
+                        // 3. MainProgressCard (replaces ProgressCard + StatTilesRow)
+                        MainProgressCard(
+                          habitsState: habitsState,
+                          selectedDayNotifier: _selectedDayNotifier,
+                        ),
 
-                    SizedBox(height: 24.h),
+                        SizedBox(height: 24.h),
 
-                    // 4. Today's Habits Section & 5. Completed Section
-                    _buildHabitsSection(habitsState),
-                  ],
-                );
-              },
+                        // 4. Today's Habits Section & 5. Completed Section
+                        _buildHabitsSection(habitsState),
+                      ],
+                    );
+                  },
+                ),
+                ConfettiOverlay(key: _confettiKey),
+              ],
             ),
           ),
         ),

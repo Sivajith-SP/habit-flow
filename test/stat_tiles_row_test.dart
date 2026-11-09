@@ -13,9 +13,9 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    final notifier = ValueNotifier<DateTime>(
-      DateTime(2026, 9, 20),
-    );
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final notifier = ValueNotifier<DateTime>(today);
 
     // Build a realistic HabitsLoaded state
     const state = HabitsLoaded(
@@ -146,6 +146,57 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('7 day streak'), findsOneWidget);
     expect(find.text('Perfect day'), findsOneWidget);
+
+    notifier.dispose();
+  });
+
+  testWidgets(
+      'MainProgressCard displays accurate completion counts for selected past day',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final now = DateTime.now();
+    final yesterday = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
+    final notifier = ValueNotifier<DateTime>(yesterday);
+
+    final state = HabitsLoaded(
+      habits: const [],
+      completedToday: 6,
+      totalHabits: 6,
+      weekProgress: const [true, true, true, true, true, true, true],
+      currentStreak: 2,
+      weekDailyCompletions: const [5, 5, 5, 5, 5, 5, 5],
+      weekDailyTotals: const [6, 6, 6, 6, 6, 6, 6],
+    );
+
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        designSize: const Size(390, 844),
+        builder: (context, child) => MaterialApp(
+          theme: ThemeData(
+            extensions: [HabitFlowTokens.light],
+          ),
+          home: Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: MainProgressCard(
+                habitsState: state,
+                selectedDayNotifier: notifier,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text("Yesterday's progress"), findsOneWidget);
+    expect(find.text('5'), findsOneWidget);
+    expect(find.text(' / 6 '), findsOneWidget);
+    expect(find.text('1 missed'), findsOneWidget);
 
     notifier.dispose();
   });

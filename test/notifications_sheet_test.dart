@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:habitflow/app/theme/app_flow_tokens.dart';
@@ -58,6 +59,9 @@ class _FakeNotificationService implements NotificationService {
 
   @override
   Future<void> showTestNotification() async {}
+
+  @override
+  Future<List<PendingNotificationRequest>> getPendingNotifications() async => [];
 }
 
 Widget _buildWrapper({
