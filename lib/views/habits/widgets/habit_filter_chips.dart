@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/theme/app_radius.dart';
-import '../../../app/theme/app_spacing.dart';
-import '../../../app/theme/app_text_styles.dart';
+import '../../../app/theme/app_flow_tokens.dart';
 import 'habit_filter.dart';
 
 class HabitFilterChips extends StatelessWidget {
@@ -26,7 +24,7 @@ class HabitFilterChips extends StatelessWidget {
           final isSelected = filter == selected;
 
           return Padding(
-            padding: EdgeInsets.only(right: AppSpacing.sm),
+            padding: EdgeInsets.only(right: 8.w),
             child: _FilterPill(
               label: _label(filter),
               isSelected: isSelected,
@@ -67,42 +65,48 @@ class _FilterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final tokens = context.flowTokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.pill),
+        borderRadius: BorderRadius.circular(999),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
           padding: EdgeInsets.symmetric(
-            horizontal: 16.w,
+            horizontal: 18.w,
             vertical: 9.h,
           ),
           decoration: BoxDecoration(
             color: isSelected
-                ? colorScheme.primary
-                : colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppRadius.pill),
+                ? tokens.accent
+                : (isDark ? tokens.raised : tokens.surface),
+            borderRadius: BorderRadius.circular(999),
             border: Border.all(
               color: isSelected
-                  ? colorScheme.primary
-                  : colorScheme.outline.withValues(alpha: 0.45),
+                  ? tokens.accent
+                  : (isDark ? tokens.border : tokens.hairline),
               width: 1,
             ),
+            boxShadow: (!isSelected && !isDark)
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF5B43B5).withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Text(
             label,
-            style: AppTextStyles.caption.copyWith(
-              color: isSelected
-                  ? colorScheme.onPrimary
-                  : colorScheme.onSurfaceVariant,
-              fontWeight: isSelected
-                  ? FontWeight.w700
-                  : FontWeight.w500,
-              fontSize: 13.sp,
+            style: AppUrbanist.body(
+              color: isSelected ? Colors.white : tokens.text,
+              fontSize: 13.5.sp,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
             ),
           ),
         ),

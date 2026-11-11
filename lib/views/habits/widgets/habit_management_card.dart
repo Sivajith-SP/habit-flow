@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../app/theme/app_colors.dart';
-import '../../../app/theme/app_radius.dart';
-import '../../../app/theme/app_shadows.dart';
+import '../../../app/theme/app_flow_tokens.dart';
 import '../../../app/theme/app_spacing.dart';
-import '../../../app/theme/app_text_styles.dart';
 import '../../../models/habit/habit_frequency.dart';
 import '../../../models/habit/habit_with_completion.dart';
 import '../../dashboard/widgets/create_habit/icon_cell.dart';
@@ -26,170 +23,152 @@ class HabitManagementCard extends StatelessWidget {
     this.onDelete,
   });
 
+  Color _badgeBg(HabitFlowTokens tokens, int codePoint) {
+    final mod = codePoint % 4;
+    return switch (mod) {
+      0 => tokens.tileLavender,
+      1 => tokens.tileMint,
+      2 => tokens.tileButter,
+      _ => tokens.tilePink,
+    };
+  }
+
+  Color _badgeIcon(HabitFlowTokens tokens, int codePoint) {
+    final mod = codePoint % 4;
+    return switch (mod) {
+      0 => tokens.tileLavenderIcon,
+      1 => tokens.tileMintIcon,
+      2 => tokens.tileButterIcon,
+      _ => tokens.tilePinkIcon,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final model = habit.habit;
     final isArchived = model.isArchived;
-
-    final colorScheme = Theme.of(context).colorScheme;
+    final tokens = context.flowTokens;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final badgeBackground = isArchived
+        ? (isDark ? tokens.border : const Color(0xFFF0EDF6))
+        : _badgeBg(tokens, model.iconCodePoint);
+
+    final badgeIconColor = isArchived
+        ? tokens.mutedText
+        : _badgeIcon(tokens, model.iconCodePoint);
+
     return InkWell(
-      borderRadius: BorderRadius.circular(AppRadius.xl),
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          border: Border.all(
-            color: colorScheme.outline.withValues(alpha: 0.35),
-          ),
-          boxShadow: isDark ? null : AppShadows.soft,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: 14.h,
         ),
-        clipBehavior: Clip.hardEdge,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Left accent bar
-              Container(
-                width: 4.w,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: isArchived
-                        ? [
-                      colorScheme.outline.withValues(alpha: 0.4),
-                      colorScheme.outline.withValues(alpha: 0.15),
-                    ]
-                        : [
-                      colorScheme.primary,
-                      AppColors.primaryDark,
-                    ],
-                  ),
-                ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Left icon badge (round, matching app design system)
+            Container(
+              width: 48.r,
+              height: 48.r,
+              decoration: BoxDecoration(
+                color: badgeBackground,
+                shape: BoxShape.circle,
               ),
+              alignment: Alignment.center,
+              child: isEmojiCodePoint(model.iconCodePoint)
+                  ? Text(
+                      String.fromCharCode(model.iconCodePoint),
+                      style: TextStyle(fontSize: 22.sp, height: 1),
+                    )
+                  : Icon(
+                      IconData(
+                        model.iconCodePoint,
+                        fontFamily: 'MaterialIcons',
+                      ),
+                      color: badgeIconColor,
+                      size: 24.sp,
+                    ),
+            ),
 
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 14.h,
+            SizedBox(width: 14.w),
+
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    model.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppUrbanist.body(
+                      color: isArchived ? tokens.mutedText : tokens.text,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+
+                  SizedBox(height: 3.h),
+
+                  Text(
+                    model.description.isEmpty
+                        ? _frequencyLabel(model.frequency)
+                        : model.description,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppUrbanist.body(
+                      color: tokens.mutedText,
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+
+                  SizedBox(height: 6.h),
+
+                  Row(
                     children: [
-                      // Icon
-                      Container(
-                        width: 46.r,
-                        height: 46.r,
-                        decoration: BoxDecoration(
-                          color: isArchived
-                              ? colorScheme.surfaceContainerHighest
-                              : colorScheme.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(14.r),
-                        ),
-                        alignment: Alignment.center,
-                        child: isEmojiCodePoint(model.iconCodePoint)
-                            ? Text(
-                                String.fromCharCode(model.iconCodePoint),
-                                style: TextStyle(fontSize: 22.sp, height: 1),
-                              )
-                            : Icon(
-                                IconData(
-                                  model.iconCodePoint,
-                                  fontFamily: 'MaterialIcons',
-                                ),
-                                color: isArchived
-                                    ? colorScheme.onSurfaceVariant
-                                    : colorScheme.primary,
-                                size: 23.sp,
-                              ),
+                      _Chip(
+                        label: _frequencyLabel(model.frequency),
+                        color: isDark
+                            ? tokens.border.withValues(alpha: 0.5)
+                            : const Color(0xFFF3F1FA),
+                        textColor: tokens.mutedText,
                       ),
-
-                      SizedBox(width: 14.w),
-
-                      // Content
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              model.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.body.copyWith(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15.sp,
-                                color: isArchived
-                                    ? colorScheme.onSurfaceVariant
-                                    : colorScheme.onSurface,
-                              ),
-                            ),
-
-                            SizedBox(height: 3.h),
-
-                            Text(
-                              model.description.isEmpty
-                                  ? _frequencyLabel(model.frequency)
-                                  : model.description,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.caption.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                fontSize: 12.sp,
-                              ),
-                            ),
-
-                            SizedBox(height: AppSpacing.sm),
-
-                            Row(
-                              children: [
-                                _Chip(
-                                  label: _frequencyLabel(model.frequency),
-                                  color: colorScheme.primary.withValues(
-                                    alpha: 0.12,
-                                  ),
-                                  textColor: colorScheme.primary,
-                                ),
-
-                                SizedBox(width: AppSpacing.xs),
-
-                                _Chip(
-                                  label: isArchived ? 'Archived' : 'Active',
-                                  color: isArchived
-                                      ? colorScheme.surfaceContainerHighest
-                                      : colorScheme.primary.withValues(
-                                    alpha: 0.12,
-                                  ),
-                                  textColor: isArchived
-                                      ? colorScheme.onSurfaceVariant
-                                      : colorScheme.primary,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      SizedBox(width: 4.w),
-
-                      _ThemedPopupMenu(
-                        isArchived: isArchived,
-                        onEdit: onEdit,
-                        onArchive: onArchive,
-                        onDelete: onDelete,
+                      SizedBox(width: 6.w),
+                      _Chip(
+                        label: isArchived ? 'Archived' : 'Active',
+                        color: isArchived
+                            ? (isDark
+                                ? tokens.border.withValues(alpha: 0.3)
+                                : const Color(0xFFEEEEF3))
+                            : (isDark
+                                ? const Color(0xFF1E382B)
+                                : const Color(0xFFE2F4EA)),
+                        textColor: isArchived
+                            ? tokens.mutedText
+                            : (isDark
+                                ? const Color(0xFF5CD898)
+                                : const Color(0xFF28795A)),
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+
+            SizedBox(width: 8.w),
+
+            // 3-dots popup menu
+            _ThemedPopupMenu(
+              isArchived: isArchived,
+              onEdit: onEdit,
+              onArchive: onArchive,
+              onDelete: onDelete,
+            ),
+          ],
         ),
       ),
     );
@@ -199,10 +178,8 @@ class HabitManagementCard extends StatelessWidget {
     switch (frequency) {
       case HabitFrequency.daily:
         return 'Daily';
-
       case HabitFrequency.weekly:
         return 'Weekly';
-
       case HabitFrequency.custom:
         return 'Custom';
     }
@@ -224,25 +201,23 @@ class _ThemedPopupMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final tokens = context.flowTokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Theme(
       data: Theme.of(context).copyWith(
         popupMenuTheme: PopupMenuThemeData(
-          color: colorScheme.surface,
+          color: isDark ? tokens.raised : tokens.surface,
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+            borderRadius: BorderRadius.circular(16.r),
             side: BorderSide(
-              color: colorScheme.outline.withValues(alpha: 0.35),
+              color: isDark ? tokens.border : tokens.hairline,
+              width: 1,
             ),
           ),
-          elevation: 8,
-          shadowColor: AppColors.shadow,
-          textStyle: AppTextStyles.body.copyWith(
-            fontSize: 14,
-            color: colorScheme.onSurface,
-          ),
+          elevation: 10,
+          shadowColor: const Color(0xFF5B43B5).withValues(alpha: 0.12),
         ),
       ),
       child: PopupMenuButton<String>(
@@ -251,56 +226,52 @@ class _ThemedPopupMenu extends StatelessWidget {
             case 'edit':
               onEdit?.call();
               break;
-
             case 'archive':
               onArchive?.call();
               break;
-
             case 'delete':
               onDelete?.call();
               break;
           }
         },
         icon: Container(
-          width: 34.r,
-          height: 34.r,
+          width: 36.r,
+          height: 36.r,
           decoration: BoxDecoration(
-            color: colorScheme.primary.withValues(alpha: 0.12),
+            color: isDark ? tokens.border.withValues(alpha: 0.35) : tokens.raised,
             shape: BoxShape.circle,
           ),
           child: Icon(
             Icons.more_horiz_rounded,
-            color: colorScheme.primary,
-            size: 18.sp,
+            color: tokens.mutedText,
+            size: 20.sp,
           ),
         ),
         padding: EdgeInsets.zero,
         itemBuilder: (_) => [
           _menuItem(
-            context: context,
             value: 'edit',
-            icon: Icons.edit_rounded,
+            icon: Icons.edit_outlined,
             label: 'Edit',
-            iconColor: colorScheme.primary,
+            iconColor: tokens.text,
+            tokens: tokens,
           ),
-
           _menuItem(
-            context: context,
             value: 'archive',
             icon: isArchived
-                ? Icons.unarchive_rounded
+                ? Icons.unarchive_outlined
                 : Icons.archive_outlined,
             label: isArchived ? 'Restore' : 'Archive',
-            iconColor: colorScheme.onSurfaceVariant,
+            iconColor: tokens.text,
+            tokens: tokens,
           ),
-
           _menuItem(
-            context: context,
             value: 'delete',
             icon: Icons.delete_outline_rounded,
             label: 'Delete',
-            iconColor: colorScheme.error,
-            labelColor: colorScheme.error,
+            iconColor: const Color(0xFFDE3750),
+            labelColor: const Color(0xFFDE3750),
+            tokens: tokens,
           ),
         ],
       ),
@@ -308,15 +279,13 @@ class _ThemedPopupMenu extends StatelessWidget {
   }
 
   PopupMenuItem<String> _menuItem({
-    required BuildContext context,
     required String value,
     required IconData icon,
     required String label,
     required Color iconColor,
+    required HabitFlowTokens tokens,
     Color? labelColor,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return PopupMenuItem<String>(
       value: value,
       padding: EdgeInsets.symmetric(
@@ -330,15 +299,13 @@ class _ThemedPopupMenu extends StatelessWidget {
             size: 18.sp,
             color: iconColor,
           ),
-
-          SizedBox(width: 10.w),
-
+          SizedBox(width: 12.w),
           Text(
             label,
-            style: AppTextStyles.body.copyWith(
+            style: AppUrbanist.body(
+              color: labelColor ?? tokens.text,
               fontSize: 14.sp,
-              color: labelColor ?? colorScheme.onSurface,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -362,19 +329,19 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 9.w,
-        vertical: 4.h,
+        horizontal: 10.w,
+        vertical: 3.5.h,
       ),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(AppRadius.pill),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Text(
         label,
-        style: AppTextStyles.caption.copyWith(
+        style: AppUrbanist.body(
           color: textColor,
-          fontWeight: FontWeight.w600,
-          fontSize: 11.sp,
+          fontSize: 11.5.sp,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
